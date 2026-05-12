@@ -4,6 +4,7 @@ import { FirebaseError } from 'firebase/app';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../../lib/firebase';
+import { getAllowedEmailDomain, getEmailAccessDeniedMessage, isEmailAllowedForAccess } from '../../lib/emailAccessPolicy';
 import { useUiStore } from '../../store/uiStore';
 import campusImage from '../../assets/nia-campus-official.jpg';
 import logo from '../../assets/logo.png';
@@ -42,15 +43,23 @@ export const LoginPage = () => {
     setLoading(true);
 
     try {
+      const trimmedEmail = email.trim();
+      if (!isEmailAllowedForAccess(trimmedEmail)) {
+        const msg = getEmailAccessDeniedMessage();
+        setError(msg);
+        showToast('error', msg);
+        return;
+      }
+
       if (isSignUp) {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, trimmedEmail, password);
         await sendEmailVerification(userCredential.user, verificationActionSettings());
         await auth.signOut();
         setNotice('Verification link sent. Please check your email before logging in.');
         showToast('success', 'Verification link sent to email');
         setIsSignUp(false);
       } else {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const userCredential = await signInWithEmailAndPassword(auth, trimmedEmail, password);
         if (!userCredential.user.emailVerified) {
           await sendEmailVerification(userCredential.user, verificationActionSettings());
           await auth.signOut();
@@ -94,6 +103,11 @@ export const LoginPage = () => {
               <p className="mt-2 text-sm text-slate-500">
                 {isSignUp ? 'Register to access Shalyatantra OT Manager' : 'Sign in to Shalyatantra OT Manager'}
               </p>
+              {isSignUp && (
+                <p className="mt-2 text-xs font-medium text-teal-800/90">
+                  Use your institute email (@{getAllowedEmailDomain()}).
+                </p>
+              )}
 
               <div className="mt-8 space-y-4">
                 <label className="block">

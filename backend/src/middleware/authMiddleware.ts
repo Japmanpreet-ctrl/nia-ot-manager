@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import admin from '../config/firebaseAdmin';
 import { supabase } from '../config/supabase';
+import { getAllowedEmailDomain, isEmailAllowedForAccess } from '../config/emailAccess';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -18,6 +19,14 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     if (!token) return res.status(401).json({ error: 'No token provided' });
 
     const decoded = await admin.auth().verifyIdToken(token);
+    const tokenEmail = decoded.email ?? '';
+    if (!isEmailAllowedForAccess(tokenEmail)) {
+      const domain = getAllowedEmailDomain();
+      return res.status(403).json({
+        error: `This app is restricted to approved @${domain} accounts.`,
+      });
+    }
+
     const { data: userData } = await supabase
       .from('users')
       .select('*')
