@@ -22,3 +22,4 @@
 
 # Vercel local metadata
 .vercel/
+.vercel
