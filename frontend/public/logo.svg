@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="NIA logo">
+  <rect width="96" height="96" rx="24" fill="#0D9488"/>
+  <path d="M42 18h12v24h24v12H54v24H42V54H18V42h24V18z" fill="#ECFEFF"/>
+  <path d="M31 70c9-10 25-10 34 0" fill="none" stroke="#99F6E4" stroke-width="6" stroke-linecap="round"/>
+</svg>
