@@ -4,7 +4,7 @@ import { FirebaseError } from 'firebase/app';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../../lib/firebase';
-import { getAllowedEmailDomain, getEmailAccessDeniedMessage, isEmailAllowedForAccess } from '../../lib/emailAccessPolicy';
+import { formatAllowedDomainsHint, getEmailAccessDeniedMessage, isEmailAllowedForAccess } from '../../lib/emailAccessPolicy';
 import { useUiStore } from '../../store/uiStore';
 import campusImage from '../../assets/nia-campus-official.jpg';
 import logo from '../../assets/logo.png';
@@ -105,7 +105,7 @@ export const LoginPage = () => {
               </p>
               {isSignUp && (
                 <p className="mt-2 text-xs font-medium text-teal-800/90">
-                  Use your institute email (@{getAllowedEmailDomain()}).
+                  Use your institute email ({formatAllowedDomainsHint()}).
                 </p>
               )}
 
@@ -156,10 +156,14 @@ export const LoginPage = () => {
   );
 };
 
-const verificationActionSettings = () => ({
-  url: `${window.location.origin}/login?verified=1`,
-  handleCodeInApp: false
-});
+/** Use env on Vercel so the continue URL matches Firebase Authorized domains (fixes auth/unauthorized-continue-uri). */
+const verificationActionSettings = () => {
+  const envUrl = import.meta.env.VITE_EMAIL_VERIFICATION_CONTINUE_URL?.trim();
+  const url =
+    envUrl ||
+    `${typeof window !== 'undefined' ? window.location.origin : ''}/login?verified=1`;
+  return { url, handleCodeInApp: false as const };
+};
 
 const getAuthErrorMessage = (error: unknown, fallback: string) => {
   if (!(error instanceof FirebaseError)) {
@@ -174,7 +178,9 @@ const getAuthErrorMessage = (error: unknown, fallback: string) => {
     'auth/wrong-password': 'Email or password is incorrect.',
     'auth/weak-password': 'Password must be at least 6 characters.',
     'auth/too-many-requests': 'Too many attempts. Please wait and try again.',
-    'auth/network-request-failed': 'Network error. Please check internet and try again.'
+    'auth/network-request-failed': 'Network error. Please check internet and try again.',
+    'auth/unauthorized-continue-uri':
+      'Verification link blocked: add your site domain in Firebase Console → Authentication → Settings → Authorized domains. On Vercel, set VITE_EMAIL_VERIFICATION_CONTINUE_URL to https://your-domain/login?verified=1'
   };
 
   return messages[error.code] || error.message || `${fallback} failed`;

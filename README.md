@@ -92,7 +92,22 @@ npm run dev
 3. Find your user and change `role` to `admin`.
 4. Refresh the app. Admin Panel becomes visible.
 
-## Deployment
-Frontend: Deploy to Vercel and set the frontend env vars.
+## Firebase Console (required for email sign-in)
 
-Backend: Deploy to Render and set the backend env vars, especially `FIREBASE_SERVICE_ACCOUNT_JSON`.
+1. **Authorized domains** — In [Firebase Console](https://console.firebase.google.com) → your project → **Authentication** → **Settings** → **Authorized domains**, add every hostname users open the app on, for example:
+   - `nia-ot-manager.vercel.app`
+   - Your custom domain (if any)
+   - `localhost` (usually already listed for local dev)
+
+   If you see **`auth/unauthorized-continue-uri`**, the domain in the verification redirect URL is missing here.
+
+2. **Verification redirect URL** — Set in Vercel (and rebuild):  
+   `VITE_EMAIL_VERIFICATION_CONTINUE_URL=https://nia-ot-manager.vercel.app/login?verified=1`  
+   (Use your real production hostname.) That URL’s domain must appear under Authorized domains.
+
+## Deployment
+
+Single **Vercel** project: static frontend plus `/api` serverless routes. Set frontend env vars on Vercel (including Supabase/Firebase client keys), backend secrets for API routes (`SUPABASE_*`, `FIREBASE_SERVICE_ACCOUNT_JSON`), and institute email policy if you override defaults:
+
+- `ALLOWED_EMAIL_DOMAINS` — comma-separated, should match `VITE_ALLOWED_EMAIL_DOMAINS` when used.
+- `VITE_EMAIL_VERIFICATION_CONTINUE_URL` — see above.
