@@ -1,6 +1,7 @@
 import { Eye, EyeOff, Mail, LockKeyhole } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
 import { FirebaseError } from 'firebase/app';
+import type { ActionCodeSettings, User } from 'firebase/auth';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../../lib/firebase';
@@ -53,7 +54,7 @@ export const LoginPage = () => {
 
       if (isSignUp) {
         const userCredential = await createUserWithEmailAndPassword(auth, trimmedEmail, password);
-        await sendEmailVerification(userCredential.user, verificationActionSettings());
+        await sendVerificationEmail(userCredential.user);
         await auth.signOut();
         setNotice('Verification link sent. Please check your email before logging in.');
         showToast('success', 'Verification link sent to email');
@@ -61,7 +62,7 @@ export const LoginPage = () => {
       } else {
         const userCredential = await signInWithEmailAndPassword(auth, trimmedEmail, password);
         if (!userCredential.user.emailVerified) {
-          await sendEmailVerification(userCredential.user, verificationActionSettings());
+          await sendVerificationEmail(userCredential.user);
           await auth.signOut();
           setNotice('Your email is not verified yet. I sent a fresh verification link.');
           showToast('success', 'Fresh verification link sent');
@@ -156,18 +157,43 @@ export const LoginPage = () => {
   );
 };
 
-/** Use env on Vercel so the continue URL matches Firebase Authorized domains (fixes auth/unauthorized-continue-uri). */
-const verificationActionSettings = () => {
+/**
+ * Only pass a custom continue URL when `VITE_EMAIL_VERIFICATION_CONTINUE_URL` is set.
+ * Otherwise Firebase uses its default verification flow (no custom domain allowlist needed).
+ * When the env URL is set, that URL's hostname must be in Firebase → Auth → Authorized domains.
+ */
+const getVerificationActionSettings = (): ActionCodeSettings | undefined => {
   const envUrl = import.meta.env.VITE_EMAIL_VERIFICATION_CONTINUE_URL?.trim();
-  const url =
-    envUrl ||
-    `${typeof window !== 'undefined' ? window.location.origin : ''}/login?verified=1`;
-  return { url, handleCodeInApp: false as const };
+  if (!envUrl) return undefined;
+  return { url: envUrl, handleCodeInApp: false };
+};
+
+const sendVerificationEmail = async (user: User) => {
+  const opts = getVerificationActionSettings();
+  if (opts) await sendEmailVerification(user, opts);
+  else await sendEmailVerification(user);
+};
+
+const unauthorizedContinueUriHelp = () => {
+  const envUrl = import.meta.env.VITE_EMAIL_VERIFICATION_CONTINUE_URL?.trim();
+  let hostname = '';
+  try {
+    if (envUrl) hostname = new URL(envUrl).hostname;
+    else if (typeof window !== 'undefined') hostname = window.location.hostname;
+  } catch {
+    /* ignore */
+  }
+  const target = hostname ? `"${hostname}"` : 'your site hostname';
+  return `Firebase blocked the verification link: add ${target} under Firebase Console → Authentication → Settings → Authorized domains, save, then try again.`;
 };
 
 const getAuthErrorMessage = (error: unknown, fallback: string) => {
   if (!(error instanceof FirebaseError)) {
     return error instanceof Error ? error.message : `${fallback} failed`;
+  }
+
+  if (error.code === 'auth/unauthorized-continue-uri') {
+    return unauthorizedContinueUriHelp();
   }
 
   const messages: Record<string, string> = {
@@ -178,9 +204,7 @@ const getAuthErrorMessage = (error: unknown, fallback: string) => {
     'auth/wrong-password': 'Email or password is incorrect.',
     'auth/weak-password': 'Password must be at least 6 characters.',
     'auth/too-many-requests': 'Too many attempts. Please wait and try again.',
-    'auth/network-request-failed': 'Network error. Please check internet and try again.',
-    'auth/unauthorized-continue-uri':
-      'Verification link blocked: add your site domain in Firebase Console → Authentication → Settings → Authorized domains. On Vercel, set VITE_EMAIL_VERIFICATION_CONTINUE_URL to https://your-domain/login?verified=1'
+    'auth/network-request-failed': 'Network error. Please check internet and try again.'
   };
 
   return messages[error.code] || error.message || `${fallback} failed`;

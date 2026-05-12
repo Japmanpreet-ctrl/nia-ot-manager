@@ -101,9 +101,7 @@ npm run dev
 
    If you see **`auth/unauthorized-continue-uri`**, the domain in the verification redirect URL is missing here.
 
-2. **Verification redirect URL** — Set in Vercel (and rebuild):  
-   `VITE_EMAIL_VERIFICATION_CONTINUE_URL=https://nia-ot-manager.vercel.app/login?verified=1`  
-   (Use your real production hostname.) That URL’s domain must appear under Authorized domains.
+2. **Verification redirect URL (optional)** — If you set `VITE_EMAIL_VERIFICATION_CONTINUE_URL` on Vercel, that URL’s **hostname** must be listed under Authorized domains. If you omit it, Firebase uses its default verification page (no custom domain to allowlist). To land users on your app after verification, set the variable and add the domain.
 
 ## Deployment
 
