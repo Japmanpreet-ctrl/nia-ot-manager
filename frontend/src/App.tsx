@@ -32,7 +32,6 @@ export const App = () => {
       }
 
       try {
-        await api.get('/analytics/summary');
         const { data } = await api.get<AppUser>('/users/me');
         setAppUser(data);
       } catch {

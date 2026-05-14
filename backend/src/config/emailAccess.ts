@@ -1,4 +1,5 @@
 const DEFAULT_DOMAINS = ['nia.edu.in', 'nia.edu.ac.in'];
+const DEFAULT_EXTERNAL_ADMIN_EMAILS = ['admin@nia-jaipur.local'];
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
@@ -33,9 +34,20 @@ export const parseEmailAllowlist = (): Set<string> | null => {
   return set.size > 0 ? set : null;
 };
 
+export const getExternalAdminEmails = (): Set<string> => {
+  const envAdmins = splitCsv(process.env.EXTERNAL_ADMIN_EMAILS);
+  return new Set([...DEFAULT_EXTERNAL_ADMIN_EMAILS, ...envAdmins].map(normalizeEmail));
+};
+
+export const isExternalAdminEmail = (email: string | null | undefined): boolean => {
+  if (!email) return false;
+  return getExternalAdminEmails().has(normalizeEmail(email));
+};
+
 export const isEmailAllowedForAccess = (email: string | null | undefined): boolean => {
   if (!email) return false;
   const normalized = normalizeEmail(email);
+  if (isExternalAdminEmail(normalized)) return true;
   const domains = getAllowedEmailDomains();
   const matchesDomain = domains.some((domain) => normalized.endsWith(`@${domain}`));
   if (!matchesDomain) return false;

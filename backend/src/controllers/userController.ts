@@ -9,7 +9,8 @@ export const getMe = async (req: AuthRequest, res: Response) => {
     firebase_uid: req.user?.uid,
     email: req.user?.email,
     full_name: req.user?.full_name,
-    role: req.user?.role
+    role: req.user?.role,
+    role_level: req.user?.role_level
   });
 };
 

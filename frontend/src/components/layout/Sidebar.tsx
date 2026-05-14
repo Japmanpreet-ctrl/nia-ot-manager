@@ -21,7 +21,7 @@ const navItems = [
 export const Sidebar = () => {
   const [open, setOpen] = useState(false);
   const appUser = useAuthStore((state) => state.appUser);
-  const visibleItems = navItems.filter((item) => !item.action || canUser(appUser?.role, item.action));
+  const visibleItems = navItems.filter((item) => !item.action || canUser(appUser, item.action));
 
   return (
     <>

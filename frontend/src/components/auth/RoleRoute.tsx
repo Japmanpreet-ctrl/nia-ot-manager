@@ -9,7 +9,7 @@ export const RoleRoute = ({ action }: { action?: PermissionAction }) => {
 
   if (!appUser) return <Navigate to="/login" state={{ from: location }} replace />;
   
-  if (action && !canUser(appUser.role, action)) {
+  if (action && !canUser(appUser, action)) {
     // If they don't have permission for this route, bounce them back to dashboard
     return <Navigate to="/dashboard" replace />;
   }

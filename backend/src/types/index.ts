@@ -8,6 +8,7 @@ export interface AppUser {
   email: string;
   full_name: string;
   role: UserRole;
+  role_level?: number | null;
   created_at: string;
 }
 

@@ -1,5 +1,5 @@
 import { format, parseISO } from 'date-fns';
-import type { PermissionAction, UserRole } from '../types';
+import type { AppUser, PermissionAction, UserRole } from '../types';
 
 export const cn = (...inputs: Array<string | false | null | undefined>) => inputs.filter(Boolean).join(' ');
 
@@ -10,8 +10,19 @@ const permissions: Record<UserRole, PermissionAction[]> = {
   data_entry: ['view_records', 'add_record', 'view_inventory']
 };
 
-export const canUser = (role: UserRole | undefined | null, action: PermissionAction) =>
-  Boolean(role && permissions[role]?.includes(action));
+export const canUser = (userOrRole: AppUser | UserRole | undefined | null, action: PermissionAction) => {
+  const role = typeof userOrRole === 'string' ? userOrRole : userOrRole?.role;
+  if (!role) return false;
+
+  const hasBasePermission = permissions[role]?.includes(action) ?? false;
+  if (hasBasePermission) return true;
+
+  if (action === 'view_operations' && typeof userOrRole !== 'string') {
+    return role === 'data_entry' && userOrRole?.role_level === 5;
+  }
+
+  return false;
+};
 
 export const getInitials = (nameOrEmail = 'User') =>
   nameOrEmail

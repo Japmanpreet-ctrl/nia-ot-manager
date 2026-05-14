@@ -9,6 +9,6 @@ export const useAuth = () => {
     appUser,
     isLoading,
     role: appUser?.role,
-    can: (action: PermissionAction) => canUser(appUser?.role, action)
+    can: (action: PermissionAction) => canUser(appUser, action)
   };
 };
