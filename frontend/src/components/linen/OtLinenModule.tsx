@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import {
-  AlertTriangle, CheckCircle2, Boxes, WashingMachine, Scissors,
+  AlertTriangle, CheckCircle2, Boxes, RefreshCw, XCircle,
   Plus, Pencil, Trash2, Search, X, ChevronLeft, ChevronRight, ClipboardList
 } from 'lucide-react';
 import { getApiErrorMessage } from '../../lib/utils';
@@ -122,8 +122,8 @@ export const OtLinenModule = () => {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <StatCard label="Total Items" value={statData?.total_items ?? '—'} icon={Boxes} color="teal" />
         <StatCard label="Available" value={statData?.total_available ?? '—'} icon={CheckCircle2} color="emerald" />
-        <StatCard label="In Laundry" value={statData?.total_in_laundry ?? '—'} icon={WashingMachine} color="blue" />
-        <StatCard label="Damaged" value={statData?.total_damaged ?? '—'} icon={Scissors} color="orange" />
+        <StatCard label="In Laundry" value={statData?.total_in_laundry ?? '—'} icon={RefreshCw} color="blue" />
+        <StatCard label="Damaged" value={statData?.total_damaged ?? '—'} icon={XCircle} color="orange" />
         <StatCard label="Low Stock" value={statData?.low_stock_count ?? '—'} icon={AlertTriangle} color="amber" />
         <StatCard label="Out of Stock" value={statData?.out_of_stock_count ?? '—'} icon={AlertTriangle} color="red" />
       </div>
@@ -303,7 +303,7 @@ export const OtLinenModule = () => {
                             <button type="button" title="Send to Laundry"
                               onClick={() => setSendLaundryTarget(item)}
                               className="inline-flex items-center gap-1 rounded-lg border border-amber-200 px-2.5 py-1.5 text-xs font-bold text-amber-700 hover:bg-amber-50">
-                              <WashingMachine className="h-3.5 w-3.5" />
+                              <RefreshCw className="h-3.5 w-3.5" />
                             </button>
                             <button type="button" title="Laundry Logs"
                               onClick={() => setActivePanel(activePanel?.type === 'laundry' && activePanel.itemId === item.id ? null : { type: 'laundry', itemId: item.id })}

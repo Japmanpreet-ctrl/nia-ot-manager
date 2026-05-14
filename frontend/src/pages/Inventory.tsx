@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { AlertTriangle, Boxes, CheckCircle2, Pencil, Plus, Save, Search, Shirt, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Boxes, CheckCircle2, Pencil, Plus, Save, Search, Layers, Trash2, X } from 'lucide-react';
 import { getApiErrorMessage } from '../lib/utils';
 import { useAuth } from '../hooks/useAuth';
 import { useOperationsOverview, useSaveOperationsOverview } from '../hooks/useAnalytics';
@@ -118,7 +118,7 @@ export const Inventory = () => {
               : 'text-slate-500 hover:text-slate-700'
           }`}
         >
-          <Shirt className="h-4 w-4" />
+          <Layers className="h-4 w-4" />
           OT Linen
         </button>
       </div>

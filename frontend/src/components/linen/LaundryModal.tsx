@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { X, WashingMachine } from 'lucide-react';
+import { X, RefreshCw } from 'lucide-react';
 import type { OtLinenItem, OtLinenLaundryLog } from '../../types';
 
 const inputClass =
@@ -52,7 +52,7 @@ export const SendLaundryModal = ({ item, onCancel, onSubmit, isLoading }: SendLa
       <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white shadow-2xl">
         <div className="flex items-center gap-3 border-b border-slate-100 px-6 py-5">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
-            <WashingMachine className="h-5 w-5" />
+            <RefreshCw className="h-5 w-5" />
           </div>
           <div className="flex-1">
             <h3 className="text-base font-bold text-slate-900">Send to Laundry</h3>
@@ -121,7 +121,7 @@ export const ReturnLaundryModal = ({ log, onCancel, onSubmit, isLoading }: Retur
       <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white shadow-2xl">
         <div className="flex items-center gap-3 border-b border-slate-100 px-6 py-5">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-100 text-teal-600">
-            <WashingMachine className="h-5 w-5" />
+            <RefreshCw className="h-5 w-5" />
           </div>
           <div className="flex-1">
             <h3 className="text-base font-bold text-slate-900">Return from Laundry</h3>
