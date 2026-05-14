@@ -8,6 +8,7 @@ export type PermissionAction =
   | 'view_analytics'
   | 'view_operations'
   | 'view_inventory'
+  | 'manage_linen'
   | 'export_pdf'
   | 'access_admin';
 
@@ -131,4 +132,88 @@ export interface OperationsOverview {
   culture: Array<{ sample: string; site: string; collected_on: string; result: string; status: string }>;
   updated_by?: string;
   updated_at?: string;
+}
+
+/* ─── OT Linen ─── */
+
+export type LinenStatus = 'Available' | 'In Laundry' | 'Damaged' | 'Out of Stock' | 'Low Stock';
+export type LaundryStatus = 'Sent' | 'Partially Returned' | 'Returned' | 'Lost';
+
+export interface OtLinenItem {
+  id: string;
+  item_name: string;
+  category: string;
+  quantity_available: number;
+  in_laundry: number;
+  damaged: number;
+  minimum_threshold: number;
+  unit: string;
+  status: LinenStatus;
+  notes?: string | null;
+  is_deleted: boolean;
+  created_by_uid?: string | null;
+  created_by_name?: string | null;
+  updated_by_uid?: string | null;
+  updated_by_name?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OtLinenItemInput {
+  item_name: string;
+  category: string;
+  quantity_available: number;
+  in_laundry?: number;
+  damaged?: number;
+  minimum_threshold: number;
+  unit: string;
+  notes?: string | null;
+}
+
+export interface OtLinenLaundryLog {
+  id: string;
+  linen_item_id: string;
+  quantity_sent: number;
+  date_sent: string;
+  expected_return_date: string;
+  returned_quantity: number;
+  pending_quantity: number;
+  laundry_status: LaundryStatus;
+  notes?: string | null;
+  sent_by_uid?: string | null;
+  sent_by_name?: string | null;
+  updated_by_uid?: string | null;
+  updated_by_name?: string | null;
+  created_at: string;
+  updated_at: string;
+  ot_linen_items?: { item_name: string; category: string; unit: string };
+}
+
+export interface OtLinenStats {
+  total_items: number;
+  total_available: number;
+  total_in_laundry: number;
+  total_damaged: number;
+  low_stock_count: number;
+  out_of_stock_count: number;
+}
+
+export interface OtLinenAuditLog {
+  id: string;
+  linen_item_id: string | null;
+  action: string;
+  quantity_change?: number | null;
+  old_values?: Record<string, unknown> | null;
+  new_values?: Record<string, unknown> | null;
+  performed_by_uid?: string | null;
+  performed_by_name?: string | null;
+  created_at: string;
+  ot_linen_items?: { item_name: string; category: string } | null;
+}
+
+export interface PaginatedLinenItems {
+  data: OtLinenItem[];
+  total: number;
+  page: number;
+  totalPages: number;
 }

@@ -4,10 +4,10 @@ import type { AppUser, PermissionAction, UserRole } from '../types';
 export const cn = (...inputs: Array<string | false | null | undefined>) => inputs.filter(Boolean).join(' ');
 
 const permissions: Record<UserRole, PermissionAction[]> = {
-  admin: ['view_records', 'add_record', 'edit_record', 'delete_record', 'view_analytics', 'view_operations', 'view_inventory', 'export_pdf', 'access_admin'],
-  doctor: ['view_records', 'add_record', 'edit_record', 'view_analytics', 'view_operations', 'view_inventory', 'export_pdf'],
-  nurse: ['view_records', 'add_record', 'view_operations', 'view_inventory', 'export_pdf'],
-  data_entry: ['view_records', 'add_record', 'view_inventory']
+  admin: ['view_records', 'add_record', 'edit_record', 'delete_record', 'view_analytics', 'view_operations', 'view_inventory', 'manage_linen', 'export_pdf', 'access_admin'],
+  doctor: ['view_records', 'add_record', 'edit_record', 'view_analytics', 'view_operations', 'view_inventory', 'manage_linen', 'export_pdf'],
+  nurse: ['view_records', 'add_record', 'view_operations', 'view_inventory', 'manage_linen', 'export_pdf'],
+  data_entry: ['view_records', 'add_record', 'view_inventory', 'manage_linen']
 };
 
 export const canUser = (userOrRole: AppUser | UserRole | undefined | null, action: PermissionAction) => {

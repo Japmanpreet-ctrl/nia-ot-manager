@@ -13,6 +13,7 @@ import recordsRouter from './routes/records';
 import analyticsRouter from './routes/analytics';
 import operationsRouter from './routes/operations';
 import usersRouter from './routes/users';
+import linenRouter from './routes/linen';
 
 const app = express();
 
@@ -50,6 +51,7 @@ app.use('/api/records', authenticate, recordsRouter);
 app.use('/api/analytics', authenticate, analyticsRouter);
 app.use('/api/operations', authenticate, operationsRouter);
 app.use('/api/users', authenticate, usersRouter);
+app.use('/api/linen', authenticate, linenRouter);
 app.use(errorMiddleware);
 
 export default app;
