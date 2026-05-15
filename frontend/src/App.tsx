@@ -13,7 +13,10 @@ import { Records } from './pages/Records';
 import { AddRecord } from './pages/AddRecord';
 import { Analytics } from './pages/Analytics';
 import { Inventory } from './pages/Inventory';
+import { Linen } from './pages/Linen';
 import { Operations } from './pages/Operations';
+import { Culture } from './pages/Culture';
+import { Articles } from './pages/Articles';
 import { AdminPanel } from './pages/AdminPanel';
 import { RoleRoute } from './components/auth/RoleRoute';
 import type { AppUser } from './types';
@@ -67,10 +70,13 @@ export const App = () => {
             
             <Route element={<RoleRoute action="view_inventory" />}>
               <Route path="/inventory" element={<Inventory />} />
+              <Route path="/linen" element={<Linen />} />
             </Route>
             
             <Route element={<RoleRoute action="view_operations" />}>
               <Route path="/operations" element={<Operations />} />
+              <Route path="/culture" element={<Culture />} />
+              <Route path="/articles" element={<Articles />} />
             </Route>
             
             <Route element={<RoleRoute action="access_admin" />}>

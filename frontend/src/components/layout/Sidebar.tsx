@@ -1,4 +1,4 @@
-import { Bell, BarChart3, Boxes, CalendarPlus, ClipboardList, LayoutDashboard, LogOut, Menu, ShieldCheck, Users, X } from 'lucide-react';
+import { Bell, BarChart3, Boxes, CalendarPlus, ClipboardList, FlaskConical, HardDrive, Layers, LayoutDashboard, LogOut, Menu, ShieldCheck, Users, X } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { useState } from 'react';
@@ -13,8 +13,11 @@ const navItems = [
   { label: 'Records', to: '/records', icon: ClipboardList },
   { label: 'Add Record', to: '/add-record', icon: CalendarPlus },
   { label: 'Analytics', to: '/analytics', icon: BarChart3, action: 'view_analytics' as const },
-  { label: 'OT Inventory', to: '/inventory', icon: Boxes, action: 'view_inventory' as const },
+  { label: 'OT Consumables', to: '/inventory', icon: Boxes, action: 'view_inventory' as const },
+  { label: 'OT Linen', to: '/linen', icon: Layers, action: 'view_inventory' as const },
   { label: 'OT Operations', to: '/operations', icon: ShieldCheck, action: 'view_operations' as const },
+  { label: 'OT Culture', to: '/culture', icon: FlaskConical, action: 'view_operations' as const },
+  { label: 'OT Permanent Articles', to: '/articles', icon: HardDrive, action: 'view_operations' as const },
   { label: 'Admin Panel', to: '/admin', icon: Users, action: 'access_admin' as const }
 ];
 

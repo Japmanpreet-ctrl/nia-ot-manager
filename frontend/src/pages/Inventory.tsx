@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { AlertTriangle, Boxes, CheckCircle2, Pencil, Plus, Save, Search, Layers, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Boxes, CheckCircle2, Pencil, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import { getApiErrorMessage } from '../lib/utils';
 import { useAuth } from '../hooks/useAuth';
 import { useOperationsOverview, useSaveOperationsOverview } from '../hooks/useAnalytics';
 import { useUiStore } from '../store/uiStore';
 import { PageWrapper } from '../components/layout/PageWrapper';
-import { OtLinenModule } from '../components/linen/OtLinenModule';
 import type { OperationsOverview } from '../types';
 
 type InventoryRow = OperationsOverview['inventory'][number];
@@ -22,8 +21,6 @@ const blankItem: InventoryRow = {
   status: 'Critical'
 };
 
-type Tab = 'products' | 'linen';
-
 export const Inventory = () => {
   const { can } = useAuth();
   const showToast = useUiStore((state) => state.showToast);
@@ -35,7 +32,6 @@ export const Inventory = () => {
   const [category, setCategory] = useState('all');
   const [status, setStatus] = useState('all');
   const [panel, setPanel] = useState<{ mode: 'add' | 'update'; index?: number } | null>(null);
-  const [activeTab, setActiveTab] = useState<Tab>('products');
 
   useEffect(() => {
     if (data) setDraft(data);
@@ -87,146 +83,110 @@ export const Inventory = () => {
     try {
       const saved = await saveInventory.mutateAsync({ ...draft, date: today });
       setDraft(saved);
-      showToast('success', 'OT inventory saved');
+      showToast('success', 'OT Consumables saved');
     } catch (error) {
       showToast('error', getApiErrorMessage(error));
     }
   };
 
   return (
-    <PageWrapper title="OT Inventory" subtitle="Master stock register and linen management for the OT">
-      {/* Tab Switcher */}
-      <div className="flex gap-1 rounded-xl border border-slate-200 bg-slate-100 p-1 w-fit">
-        <button
-          type="button"
-          onClick={() => setActiveTab('products')}
-          className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-colors ${
-            activeTab === 'products'
-              ? 'bg-white text-teal-700 shadow-sm'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <Boxes className="h-4 w-4" />
-          OT Products
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('linen')}
-          className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-colors ${
-            activeTab === 'linen'
-              ? 'bg-white text-teal-700 shadow-sm'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <Layers className="h-4 w-4" />
-          OT Linen
-        </button>
+    <PageWrapper title="OT Consumables" subtitle="Master stock register for OT consumables">
+      <div className="grid gap-5 md:grid-cols-4">
+        <InventoryStat title="Consumables" value={rows.length} icon={Boxes} tone="teal" />
+        <InventoryStat title="Total Stock Units" value={totalStock} icon={CheckCircle2} tone="blue" />
+        <InventoryStat title="Reorder" value={reorder} icon={AlertTriangle} tone={reorder ? 'amber' : 'emerald'} />
+        <InventoryStat title="Critical" value={critical} icon={AlertTriangle} tone={critical ? 'red' : 'emerald'} />
       </div>
 
-      {/* ── OT Linen Tab ── */}
-      {activeTab === 'linen' && <OtLinenModule />}
-
-      {/* ── OT Products Tab ── */}
-      {activeTab === 'products' && (
-        <>
-          <div className="grid gap-5 md:grid-cols-4">
-            <InventoryStat title="Products" value={rows.length} icon={Boxes} tone="teal" />
-            <InventoryStat title="Total Stock Units" value={totalStock} icon={CheckCircle2} tone="blue" />
-            <InventoryStat title="Reorder" value={reorder} icon={AlertTriangle} tone={reorder ? 'amber' : 'emerald'} />
-            <InventoryStat title="Critical" value={critical} icon={AlertTriangle} tone={critical ? 'red' : 'emerald'} />
+      <section className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+          <div>
+            <h2 className="text-base font-bold text-slate-900">Master Consumable Stock</h2>
+            <p className="mt-1 text-sm text-slate-500">Stock status is calculated automatically from current stock and reorder level.</p>
           </div>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={() => setPanel({ mode: 'add' })} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">
+              <Plus className="h-4 w-4" />
+              Add Consumable
+            </button>
+            <button type="button" onClick={save} disabled={!draft || saveInventory.isPending} className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-sm font-bold text-white hover:bg-teal-700 disabled:opacity-60">
+              <Save className="h-4 w-4" />
+              {saveInventory.isPending ? 'Saving...' : 'Save Inventory'}
+            </button>
+          </div>
+        </div>
 
-          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
-              <div>
-                <h2 className="text-base font-bold text-slate-900">Master Product Stock</h2>
-                <p className="mt-1 text-sm text-slate-500">Stock status is calculated automatically from current stock and reorder level.</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button type="button" onClick={() => setPanel({ mode: 'add' })} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">
-                  <Plus className="h-4 w-4" />
-                  Add Product
-                </button>
-                <button type="button" onClick={save} disabled={!draft || saveInventory.isPending} className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-sm font-bold text-white hover:bg-teal-700 disabled:opacity-60">
-                  <Save className="h-4 w-4" />
-                  {saveInventory.isPending ? 'Saving...' : 'Save Inventory'}
-                </button>
-              </div>
-            </div>
+        <div className="grid gap-3 border-b border-slate-100 bg-slate-50/70 px-5 py-4 lg:grid-cols-[1fr_180px_150px_auto]">
+          <label className="relative block">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search consumable, category, unit, or status" className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-100" />
+          </label>
+          <select value={category} onChange={(event) => setCategory(event.target.value)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none focus:border-teal-500">
+            <option value="all">All categories</option>
+            {categories.map((item) => <option key={item} value={item}>{item}</option>)}
+          </select>
+          <select value={status} onChange={(event) => setStatus(event.target.value)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none focus:border-teal-500">
+            <option value="all">All status</option>
+            <option value="Adequate">Adequate</option>
+            <option value="Reorder">Reorder</option>
+            <option value="Critical">Critical</option>
+          </select>
+          <button type="button" onClick={() => { setSearch(''); setCategory('all'); setStatus('all'); }} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 hover:bg-slate-50">
+            <X className="h-4 w-4" />
+            Reset
+          </button>
+        </div>
 
-            <div className="grid gap-3 border-b border-slate-100 bg-slate-50/70 px-5 py-4 lg:grid-cols-[1fr_180px_150px_auto]">
-              <label className="relative block">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search product, category, unit, or status" className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-100" />
-              </label>
-              <select value={category} onChange={(event) => setCategory(event.target.value)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none focus:border-teal-500">
-                <option value="all">All categories</option>
-                {categories.map((item) => <option key={item} value={item}>{item}</option>)}
-              </select>
-              <select value={status} onChange={(event) => setStatus(event.target.value)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none focus:border-teal-500">
-                <option value="all">All status</option>
-                <option value="Adequate">Adequate</option>
-                <option value="Reorder">Reorder</option>
-                <option value="Critical">Critical</option>
-              </select>
-              <button type="button" onClick={() => { setSearch(''); setCategory('all'); setStatus('all'); }} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 hover:bg-slate-50">
-                <X className="h-4 w-4" />
-                Reset
-              </button>
-            </div>
+        {panel && draft && (
+          <InventoryPanel
+            title={panel.mode === 'add' ? 'Add Consumable' : 'Update Consumable'}
+            categories={categories}
+            initialRow={panel.mode === 'update' && typeof panel.index === 'number' ? draft.inventory[panel.index] : blankItem}
+            onCancel={() => setPanel(null)}
+            onSubmit={(row) => upsertRow(row, panel.mode === 'update' ? panel.index : undefined)}
+          />
+        )}
 
-            {panel && draft && (
-              <InventoryPanel
-                title={panel.mode === 'add' ? 'Add Product' : 'Update Product'}
-                categories={categories}
-                initialRow={panel.mode === 'update' && typeof panel.index === 'number' ? draft.inventory[panel.index] : blankItem}
-                onCancel={() => setPanel(null)}
-                onSubmit={(row) => upsertRow(row, panel.mode === 'update' ? panel.index : undefined)}
-              />
-            )}
-
-            {isLoading ? (
-              <div className="p-8 text-sm font-semibold text-slate-500">Loading inventory...</div>
-            ) : isError ? (
-              <div className="space-y-3 p-8">
-                <p className="text-sm font-semibold text-red-600">{getApiErrorMessage(error)}</p>
-                <button type="button" onClick={() => refetch()} className="inline-flex items-center rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">Retry</button>
-              </div>
-            ) : !draft ? (
-              <div className="p-8 text-sm font-semibold text-slate-500">No inventory data found for today.</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[980px] text-left text-sm">
-                  <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                    <tr><th className="px-4 py-3">Category</th><th>Product</th><th>Stock</th><th>Unit</th><th>Reorder Level</th><th>Shortage</th><th>Status</th><th className="text-right">Action</th></tr>
-                  </thead>
-                  <tbody>
-                    {filteredRows.map(({ row, index }) => (
-                      <tr key={index} className="border-t border-slate-100 align-top">
-                        <td className="px-4 py-3"><span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">{row.category}</span></td>
-                        <td className="px-4 py-3 font-bold text-slate-900">{row.item}</td>
-                        <td className="px-4 py-3 font-semibold text-slate-700">{row.stock}</td>
-                        <td className="px-4 py-3 font-semibold text-slate-700">{row.unit}</td>
-                        <td className="px-4 py-3 font-semibold text-slate-700">{row.reorder_level}</td>
-                        <td className="px-4 py-3"><span className={Number(row.shortage || 0) > 0 ? 'font-bold text-red-600' : 'font-semibold text-emerald-600'}>{row.shortage || 0}</span></td>
-                        <td className="px-4 py-3"><StatusBadge status={row.status} /></td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="flex justify-end gap-2">
-                            <button type="button" onClick={() => setPanel({ mode: 'update', index })} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">
-                              <Pencil className="h-3.5 w-3.5" />Update
-                            </button>
-                            <button type="button" onClick={() => deleteRow(index)} className="inline-flex rounded-lg p-2 text-red-500 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
-        </>
-      )}
+        {isLoading ? (
+          <div className="p-8 text-sm font-semibold text-slate-500">Loading inventory...</div>
+        ) : isError ? (
+          <div className="space-y-3 p-8">
+            <p className="text-sm font-semibold text-red-600">{getApiErrorMessage(error)}</p>
+            <button type="button" onClick={() => refetch()} className="inline-flex items-center rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">Retry</button>
+          </div>
+        ) : !draft ? (
+          <div className="p-8 text-sm font-semibold text-slate-500">No inventory data found for today.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[980px] text-left text-sm">
+              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                <tr><th className="px-4 py-3">Category</th><th>Consumable</th><th>Stock</th><th>Unit</th><th>Reorder Level</th><th>Shortage</th><th>Status</th><th className="text-right">Action</th></tr>
+              </thead>
+              <tbody>
+                {filteredRows.map(({ row, index }) => (
+                  <tr key={index} className="border-t border-slate-100 align-top">
+                    <td className="px-4 py-3"><span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">{row.category}</span></td>
+                    <td className="px-4 py-3 font-bold text-slate-900">{row.item}</td>
+                    <td className="px-4 py-3 font-semibold text-slate-700">{row.stock}</td>
+                    <td className="px-4 py-3 font-semibold text-slate-700">{row.unit}</td>
+                    <td className="px-4 py-3 font-semibold text-slate-700">{row.reorder_level}</td>
+                    <td className="px-4 py-3"><span className={Number(row.shortage || 0) > 0 ? 'font-bold text-red-600' : 'font-semibold text-emerald-600'}>{row.shortage || 0}</span></td>
+                    <td className="px-4 py-3"><StatusBadge status={row.status} /></td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button type="button" onClick={() => setPanel({ mode: 'update', index })} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">
+                          <Pencil className="h-3.5 w-3.5" />Update
+                        </button>
+                        <button type="button" onClick={() => deleteRow(index)} className="inline-flex rounded-lg p-2 text-red-500 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </PageWrapper>
   );
 };
@@ -274,7 +234,7 @@ const InventoryPanel = ({ title, categories, initialRow, onCancel, onSubmit }: {
             </button>
           </label>
           <label>
-            <span className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-500">Product</span>
+            <span className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-500">Consumable</span>
             <input value={String(form.item || '')} onChange={(event) => update('item', event.target.value)} className={inputClass} />
           </label>
           <label>

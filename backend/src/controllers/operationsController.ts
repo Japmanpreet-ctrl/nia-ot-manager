@@ -10,6 +10,7 @@ type OperationsOverview = {
   sterilization: Array<Record<string, string | number>>;
   fumigation: Array<Record<string, string | number>>;
   culture: Array<Record<string, string | number>>;
+  articles: Array<Record<string, string | number>>;
   updated_by?: string;
   updated_at?: string;
 };
@@ -17,6 +18,7 @@ type OperationsOverview = {
 const dataDir = path.resolve(__dirname, '../../data');
 const dataFile = path.join(dataDir, 'operations.json');
 const globalInventoryKey = '__global_inventory__';
+const globalArticlesKey = '__global_articles__';
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
 const defaultInventory = () => [
@@ -30,9 +32,16 @@ const defaultInventory = () => [
     { category: 'Life Saving Drugs', item: 'Atropine 0.6 mg/ml', stock: 16, unit: 'ampoules', reorder_level: 20, status: 'Reorder' }
 ];
 
+const defaultArticles = () => [
+    { item_name: 'Anesthesia Workstation', category: 'Anesthesia', asset_tag: 'OT-ANES-001', location: 'OT-1', purchase_date: '2022-01-15', warranty_expiry: '2027-01-14', next_maintenance_date: '2024-07-15', status: 'Functional' },
+    { item_name: 'C-Arm Machine', category: 'Imaging', asset_tag: 'OT-IMG-001', location: 'OT-2', purchase_date: '2021-11-20', warranty_expiry: '2026-11-19', next_maintenance_date: '2024-06-20', status: 'Maintenance Required' },
+    { item_name: 'Operating Table', category: 'Tables', asset_tag: 'OT-TBL-001', location: 'OT-1', purchase_date: '2023-05-10', warranty_expiry: '2033-05-09', next_maintenance_date: '2024-11-10', status: 'Functional' }
+];
+
 const defaultOverview = (date: string): OperationsOverview => ({
   date,
   inventory: defaultInventory(),
+  articles: defaultArticles(),
   sterilization: [
     { set_name: 'Major laparotomy set', method: 'Autoclave', cycle: '134 C / 30 min', indicator: 'Passed', released_by: 'CSSD Incharge', time: '07:20' },
     { set_name: 'Minor procedure set', method: 'Autoclave', cycle: '134 C / 30 min', indicator: 'Passed', released_by: 'OT Nurse', time: '08:05' },
@@ -98,6 +107,25 @@ const normalizeInventory = (rows: Array<Record<string, string | number>>) =>
 const getGlobalInventory = (store: Record<string, OperationsOverview>, date: string) =>
   normalizeInventory(store[globalInventoryKey]?.inventory || store[date]?.inventory || defaultInventory());
 
+const sortArticles = (rows: Array<Record<string, string | number>>) =>
+  [...rows].sort((a, b) =>
+    String(a.category || '').trim().localeCompare(String(b.category || '').trim()) ||
+    String(a.item_name || '').trim().localeCompare(String(b.item_name || '').trim())
+  );
+
+const normalizeArticles = (rows: Array<Record<string, string | number>>) =>
+  sortArticles(rows).map((row) => ({
+    ...row,
+    item_name: String(row.item_name || '').trim(),
+    category: String(row.category || '').trim(),
+    asset_tag: String(row.asset_tag || '').trim(),
+    location: String(row.location || '').trim(),
+    status: String(row.status || 'Functional')
+  }));
+
+const getGlobalArticles = (store: Record<string, OperationsOverview>, date: string) =>
+  normalizeArticles(store[globalArticlesKey]?.articles || store[date]?.articles || defaultArticles());
+
 export const getOperationsOverview = async (req: AuthRequest, res: Response) => {
   const date = normalizeDate(req.query.date);
   const store = await readStore();
@@ -105,7 +133,8 @@ export const getOperationsOverview = async (req: AuthRequest, res: Response) => 
   res.json({
     ...daily,
     date,
-    inventory: getGlobalInventory(store, date)
+    inventory: getGlobalInventory(store, date),
+    articles: getGlobalArticles(store, date)
   });
 };
 
@@ -116,6 +145,7 @@ export const saveOperationsOverview = async (req: AuthRequest, res: Response) =>
   const next: OperationsOverview = {
     ...current,
     inventory: getGlobalInventory(store, date),
+    articles: getGlobalArticles(store, date),
     date,
     updated_by: req.user?.full_name || req.user?.email || 'User',
     updated_at: new Date().toISOString()
@@ -130,6 +160,17 @@ export const saveOperationsOverview = async (req: AuthRequest, res: Response) =>
       updated_at: next.updated_at
     };
     next.inventory = store[globalInventoryKey].inventory;
+  }
+
+  if (Array.isArray(req.body.articles)) {
+    store[globalArticlesKey] = {
+      ...(store[globalArticlesKey] || defaultOverview(globalArticlesKey)),
+      date: globalArticlesKey,
+      articles: normalizeArticles(req.body.articles.map((row: Record<string, string | number>) => ({ ...row }))),
+      updated_by: next.updated_by,
+      updated_at: next.updated_at
+    };
+    next.articles = store[globalArticlesKey].articles;
   }
 
   for (const section of dailySections) {

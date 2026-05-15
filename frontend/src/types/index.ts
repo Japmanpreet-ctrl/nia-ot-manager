@@ -129,7 +129,8 @@ export interface OperationsOverview {
   inventory: Array<{ category: string; item: string; stock: number | string; unit: string; reorder_level: number | string; status: string; shortage?: number }>;
   sterilization: Array<{ set_name: string; method: string; cycle: string; indicator: string; released_by: string; time: string }>;
   fumigation: Array<{ area: string; method: string; started_at: string; completed_at: string; next_due: string; status: string }>;
-  culture: Array<{ sample: string; site: string; collected_on: string; result: string; status: string }>;
+  culture: Array<{ ot_name?: string; sample: string; site: string; collected_on: string; result: string; status: string }>;
+  articles: Array<{ item_name: string; category: string; asset_tag: string; location: string; purchase_date: string; warranty_expiry: string; next_maintenance_date: string; status: string }>;
   updated_by?: string;
   updated_at?: string;
 }
