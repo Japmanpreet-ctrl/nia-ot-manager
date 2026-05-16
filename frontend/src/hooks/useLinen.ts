@@ -42,6 +42,7 @@ export const useLinenItems = (params: {
       return data;
     },
     retry: noRetryOnAuthErrors,
+    placeholderData: (prev) => prev,
   });
 
 /* ── Create item ── */

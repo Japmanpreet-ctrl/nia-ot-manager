@@ -46,7 +46,12 @@ app.use(cors({
 app.use(morgan('dev'));
 app.use(express.json({ limit: '1mb' }));
 
-app.get('/health', (_, res) => res.json({ status: 'ok' }));
+const healthHandler = (_: express.Request, res: express.Response) => {
+  res.json({ status: 'ok' });
+};
+
+app.get('/health', healthHandler);
+app.get('/api/health', healthHandler);
 app.use('/api/records', authenticate, recordsRouter);
 app.use('/api/analytics', authenticate, analyticsRouter);
 app.use('/api/operations', authenticate, operationsRouter);

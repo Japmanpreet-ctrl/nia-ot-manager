@@ -1277,7 +1277,7 @@
       }
     ],
     "updated_by": "NIA Admin",
-    "updated_at": "2026-05-14T11:53:35.209Z"
+    "updated_at": "2026-05-16T12:15:02.556Z"
   },
   "2026-05-11": {
     "date": "2026-05-11",
@@ -2228,5 +2228,705 @@
     ],
     "updated_by": "NIA Admin",
     "updated_at": "2026-05-14T11:53:35.209Z"
+  },
+  "__global_articles__": {
+    "date": "__global_articles__",
+    "inventory": [
+      {
+        "category": "Anesthesia",
+        "item": "Propofol 10 mg/ml",
+        "stock": 42,
+        "unit": "vials",
+        "reorder_level": 20,
+        "status": "Adequate"
+      },
+      {
+        "category": "Anesthesia",
+        "item": "Bupivacaine Heavy 0.5%",
+        "stock": 18,
+        "unit": "ampoules",
+        "reorder_level": 24,
+        "status": "Reorder"
+      },
+      {
+        "category": "Antibiotics",
+        "item": "Ceftriaxone 1 g",
+        "stock": 86,
+        "unit": "vials",
+        "reorder_level": 40,
+        "status": "Adequate"
+      },
+      {
+        "category": "Antibiotics",
+        "item": "Piperacillin-Tazobactam 4.5 g",
+        "stock": 14,
+        "unit": "vials",
+        "reorder_level": 18,
+        "status": "Reorder"
+      },
+      {
+        "category": "Analgesics",
+        "item": "Paracetamol IV 1 g",
+        "stock": 64,
+        "unit": "bottles",
+        "reorder_level": 30,
+        "status": "Adequate"
+      },
+      {
+        "category": "Analgesics",
+        "item": "Tramadol 50 mg/ml",
+        "stock": 22,
+        "unit": "ampoules",
+        "reorder_level": 20,
+        "status": "Adequate"
+      },
+      {
+        "category": "Life Saving Drugs",
+        "item": "Adrenaline 1 mg/ml",
+        "stock": 28,
+        "unit": "ampoules",
+        "reorder_level": 20,
+        "status": "Adequate"
+      },
+      {
+        "category": "Life Saving Drugs",
+        "item": "Atropine 0.6 mg/ml",
+        "stock": 16,
+        "unit": "ampoules",
+        "reorder_level": 20,
+        "status": "Reorder"
+      }
+    ],
+    "articles": [
+      {
+        "item_name": "Anesthesia Workstation",
+        "category": "Anesthesia",
+        "asset_tag": "OT-ANES-001",
+        "location": "OT-1",
+        "purchase_date": "2022-01-15",
+        "warranty_expiry": "2027-01-14",
+        "next_maintenance_date": "2024-07-15",
+        "status": "Functional"
+      },
+      {
+        "item_name": "C-Arm Machine",
+        "category": "Imaging",
+        "asset_tag": "OT-IMG-001",
+        "location": "OT-2",
+        "purchase_date": "2021-11-20",
+        "warranty_expiry": "2026-11-19",
+        "next_maintenance_date": "2024-06-20",
+        "status": "Maintenance Required"
+      },
+      {
+        "item_name": "Operating Table",
+        "category": "Tables",
+        "asset_tag": "OT-TBL-001",
+        "location": "OT-1",
+        "purchase_date": "2023-05-10",
+        "warranty_expiry": "2033-05-09",
+        "next_maintenance_date": "2024-11-10",
+        "status": "Functional"
+      }
+    ],
+    "sterilization": [
+      {
+        "set_name": "Major laparotomy set",
+        "method": "Autoclave",
+        "cycle": "134 C / 30 min",
+        "indicator": "Passed",
+        "released_by": "CSSD Incharge",
+        "time": "07:20"
+      },
+      {
+        "set_name": "Minor procedure set",
+        "method": "Autoclave",
+        "cycle": "134 C / 30 min",
+        "indicator": "Passed",
+        "released_by": "OT Nurse",
+        "time": "08:05"
+      },
+      {
+        "set_name": "Laparoscopic tower instruments",
+        "method": "ETO",
+        "cycle": "Overnight",
+        "indicator": "Passed",
+        "released_by": "CSSD Incharge",
+        "time": "06:45"
+      },
+      {
+        "set_name": "Dressing drums",
+        "method": "Autoclave",
+        "cycle": "121 C / 45 min",
+        "indicator": "Passed",
+        "released_by": "OT Nurse",
+        "time": "07:40"
+      }
+    ],
+    "fumigation": [
+      {
+        "area": "Main OT",
+        "method": "Hydrogen peroxide vapor",
+        "started_at": "20:00",
+        "completed_at": "21:15",
+        "next_due": "Tomorrow 20:00",
+        "status": "Completed"
+      },
+      {
+        "area": "Pre-op room",
+        "method": "Sodium hypochlorite terminal cleaning",
+        "started_at": "19:20",
+        "completed_at": "20:00",
+        "next_due": "Tomorrow 19:30",
+        "status": "Completed"
+      },
+      {
+        "area": "Recovery bay",
+        "method": "UV cycle + surface disinfection",
+        "started_at": "18:30",
+        "completed_at": "19:00",
+        "next_due": "Today 18:30",
+        "status": "Due Today"
+      }
+    ],
+    "culture": [
+      {
+        "sample": "OT air settle plate",
+        "site": "Main OT center",
+        "collected_on": "__global_articles__",
+        "result": "No growth",
+        "status": "Clear"
+      },
+      {
+        "sample": "Instrument trolley swab",
+        "site": "Sterile trolley",
+        "collected_on": "__global_articles__",
+        "result": "No growth",
+        "status": "Clear"
+      },
+      {
+        "sample": "AC vent swab",
+        "site": "Laminar airflow vent",
+        "collected_on": "__global_articles__",
+        "result": "Awaited",
+        "status": "Pending"
+      },
+      {
+        "sample": "Floor swab",
+        "site": "Near operating table",
+        "collected_on": "__global_articles__",
+        "result": "No pathogenic growth",
+        "status": "Clear"
+      }
+    ],
+    "updated_by": "NIA Admin",
+    "updated_at": "2026-05-16T12:15:02.556Z"
+  },
+  "2026-05-16": {
+    "date": "2026-05-16",
+    "inventory": [
+      {
+        "category": "Analgesics",
+        "item": "Paracetamol IV 1 g",
+        "stock": 64,
+        "unit": "bottles",
+        "reorder_level": 30,
+        "status": "Adequate",
+        "shortage": 0
+      },
+      {
+        "category": "Analgesics",
+        "item": "Tramadol 50 mg/ml",
+        "stock": 22,
+        "unit": "ampoules",
+        "reorder_level": 20,
+        "status": "Adequate",
+        "shortage": 0
+      },
+      {
+        "category": "Anesthesia",
+        "item": "Bupivacaine Heavy 0.5%",
+        "stock": 40,
+        "unit": "ampoules",
+        "reorder_level": 24,
+        "status": "Adequate",
+        "shortage": 0
+      },
+      {
+        "category": "Anesthesia",
+        "item": "ET TUBE No. 4.5",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Anesthesia",
+        "item": "ET TUBE No. 5.5",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Anesthesia",
+        "item": "ET TUBE No. 6.5",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Anesthesia",
+        "item": "ET TUBE No. 7.5",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Anesthesia",
+        "item": "Propofol 10 mg/ml",
+        "stock": 7,
+        "unit": "vials",
+        "reorder_level": 20,
+        "status": "Reorder",
+        "shortage": 13
+      },
+      {
+        "category": "Antibiotics",
+        "item": "Ceftriaxone 1 g",
+        "stock": 86,
+        "unit": "vials",
+        "reorder_level": 40,
+        "status": "Adequate",
+        "shortage": 0
+      },
+      {
+        "category": "Antibiotics",
+        "item": "Piperacillin-Tazobactam 4.5 g",
+        "stock": 20,
+        "unit": "vials",
+        "reorder_level": 18,
+        "status": "Adequate",
+        "shortage": 0
+      },
+      {
+        "category": "Catheter",
+        "item": "Foley No.14",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Catheter",
+        "item": "Foley No.16",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Catheter",
+        "item": "Foley No.18",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Drains",
+        "item": "ADK",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Drains",
+        "item": "Corrugated Drain",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Drains",
+        "item": "Romovack No.12",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Drains",
+        "item": "Romovack No.14",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Drains",
+        "item": "Tubes",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Life Saving Drugs",
+        "item": "Adrenaline 1 mg/ml",
+        "stock": 28,
+        "unit": "ampoules",
+        "reorder_level": 20,
+        "status": "Adequate",
+        "shortage": 0
+      },
+      {
+        "category": "Life Saving Drugs",
+        "item": "Atropine 0.6 mg/ml",
+        "stock": 16,
+        "unit": "ampoules",
+        "reorder_level": 20,
+        "status": "Reorder",
+        "shortage": 4
+      },
+      {
+        "category": "Surgical Goods",
+        "item": "Hernia Repair Kit",
+        "stock": 50,
+        "unit": "unit",
+        "reorder_level": 10,
+        "shortage": 0,
+        "status": "Adequate"
+      },
+      {
+        "category": "Suture",
+        "item": "Chromic Cat Gut-1",
+        "stock": 100,
+        "unit": "unit",
+        "reorder_level": 10,
+        "shortage": 0,
+        "status": "Adequate"
+      },
+      {
+        "category": "Suture",
+        "item": "Chromic Cat Gut-1-0",
+        "stock": 100,
+        "unit": "unit",
+        "reorder_level": 10,
+        "shortage": 0,
+        "status": "Adequate"
+      },
+      {
+        "category": "Suture",
+        "item": "Chromic Cat Gut-2-0",
+        "stock": 100,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Adequate"
+      },
+      {
+        "category": "Suture",
+        "item": "Chromic Cat Gut-3-0",
+        "stock": 100,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Adequate"
+      },
+      {
+        "category": "Suture",
+        "item": "Chromic Cat Gut-4-0",
+        "stock": 100,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Adequate"
+      },
+      {
+        "category": "Suture",
+        "item": "Chromic Cat Gut-5-0",
+        "stock": 100,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Adequate"
+      },
+      {
+        "category": "Suture",
+        "item": "Linen No.20",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Suture",
+        "item": "Linen No.30",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Suture",
+        "item": "Linen No.40",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Suture",
+        "item": "Monochril 3-0",
+        "stock": 100,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Adequate"
+      },
+      {
+        "category": "Suture",
+        "item": "Nylon 1-0",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Suture",
+        "item": "Nylon 2-0",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Suture",
+        "item": "Nylon 3-0",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Suture",
+        "item": "Nylon 4-0",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Suture",
+        "item": "Silk 1-0",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Suture",
+        "item": "Silk 2-0",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Suture",
+        "item": "Silk 3-0",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Suture",
+        "item": "Silk 4-0",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Suture",
+        "item": "Vichril 1-0",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Suture",
+        "item": "Vichril 2-0",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      },
+      {
+        "category": "Suture",
+        "item": "Vichril 3-0",
+        "stock": 0,
+        "unit": "vials",
+        "reorder_level": 0,
+        "shortage": 0,
+        "status": "Critical"
+      }
+    ],
+    "articles": [
+      {
+        "item_name": "Anesthesia Workstation",
+        "category": "Anesthesia",
+        "asset_tag": "OT-ANES-001",
+        "location": "OT-1",
+        "purchase_date": "2022-01-15",
+        "warranty_expiry": "2027-01-14",
+        "next_maintenance_date": "2024-07-15",
+        "status": "Functional"
+      },
+      {
+        "item_name": "C-Arm Machine",
+        "category": "Imaging",
+        "asset_tag": "OT-IMG-001",
+        "location": "OT-2",
+        "purchase_date": "2021-11-20",
+        "warranty_expiry": "2026-11-19",
+        "next_maintenance_date": "2024-06-20",
+        "status": "Maintenance Required"
+      },
+      {
+        "item_name": "Operating Table",
+        "category": "Tables",
+        "asset_tag": "OT-TBL-001",
+        "location": "OT-1",
+        "purchase_date": "2023-05-10",
+        "warranty_expiry": "2033-05-09",
+        "next_maintenance_date": "2024-11-10",
+        "status": "Functional"
+      }
+    ],
+    "sterilization": [
+      {
+        "set_name": "Major laparotomy set",
+        "method": "Autoclave",
+        "cycle": "134 C / 30 min",
+        "indicator": "Passed",
+        "released_by": "CSSD Incharge",
+        "time": "07:20"
+      },
+      {
+        "set_name": "Minor procedure set",
+        "method": "Autoclave",
+        "cycle": "134 C / 30 min",
+        "indicator": "Passed",
+        "released_by": "OT Nurse",
+        "time": "08:05"
+      },
+      {
+        "set_name": "Laparoscopic tower instruments",
+        "method": "ETO",
+        "cycle": "Overnight",
+        "indicator": "Passed",
+        "released_by": "CSSD Incharge",
+        "time": "06:45"
+      },
+      {
+        "set_name": "Dressing drums",
+        "method": "Autoclave",
+        "cycle": "121 C / 45 min",
+        "indicator": "Passed",
+        "released_by": "OT Nurse",
+        "time": "07:40"
+      }
+    ],
+    "fumigation": [
+      {
+        "area": "Main OT",
+        "method": "Hydrogen peroxide vapor",
+        "started_at": "20:00",
+        "completed_at": "21:15",
+        "next_due": "Tomorrow 20:00",
+        "status": "Completed"
+      },
+      {
+        "area": "Pre-op room",
+        "method": "Sodium hypochlorite terminal cleaning",
+        "started_at": "19:20",
+        "completed_at": "20:00",
+        "next_due": "Tomorrow 19:30",
+        "status": "Completed"
+      },
+      {
+        "area": "Recovery bay",
+        "method": "UV cycle + surface disinfection",
+        "started_at": "18:30",
+        "completed_at": "19:00",
+        "next_due": "Today 18:30",
+        "status": "Due Today"
+      }
+    ],
+    "culture": [
+      {
+        "sample": "OT air settle plate",
+        "site": "Main OT center",
+        "collected_on": "2026-05-16",
+        "result": "No growth",
+        "status": "Clear"
+      },
+      {
+        "sample": "Instrument trolley swab",
+        "site": "Sterile trolley",
+        "collected_on": "2026-05-16",
+        "result": "No growth",
+        "status": "Clear"
+      },
+      {
+        "sample": "AC vent swab",
+        "site": "Laminar airflow vent",
+        "collected_on": "2026-05-16",
+        "result": "Awaited",
+        "status": "Pending"
+      },
+      {
+        "sample": "Floor swab",
+        "site": "Near operating table",
+        "collected_on": "2026-05-16",
+        "result": "No pathogenic growth",
+        "status": "Clear"
+      }
+    ],
+    "updated_by": "NIA Admin",
+    "updated_at": "2026-05-16T12:15:02.556Z"
   }
 }

@@ -46,7 +46,10 @@ export const getLinenStats = async (_req: AuthRequest, res: Response) => {
     .select('quantity_available, in_laundry, damaged, minimum_threshold, status')
     .eq('is_deleted', false);
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    console.error('Supabase error in getLinenStats:', error);
+    return res.status(500).json({ error: error.message });
+  }
 
   const rows = data || [];
   const stats = {
@@ -105,7 +108,10 @@ export const getLinenItems = async (req: AuthRequest, res: Response) => {
   }
 
   const { data, error, count } = await query;
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    console.error('Supabase error in getLinenItems:', error);
+    return res.status(500).json({ error: error.message });
+  }
 
   res.json({
     data: data || [],
@@ -273,7 +279,10 @@ export const getLaundryLogs = async (req: AuthRequest, res: Response) => {
   if (status) query = query.eq('laundry_status', status);
 
   const { data, error } = await query;
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    console.error('Supabase error in getLaundryLogs:', error);
+    return res.status(500).json({ error: error.message });
+  }
 
   res.json(data || []);
 };
@@ -386,6 +395,7 @@ export const updateLaundryLog = async (req: AuthRequest, res: Response) => {
     .from('ot_linen_laundry_logs')
     .update({
       returned_quantity: newReturned,
+      pending_quantity: pending,
       laundry_status: status,
       notes: notes !== undefined ? (notes ? String(notes).trim() : null) : log.notes,
       updated_by_uid: req.user?.uid,
@@ -455,7 +465,10 @@ export const getLinenAuditLogs = async (req: AuthRequest, res: Response) => {
   if (itemId) query = query.eq('linen_item_id', itemId);
 
   const { data, error, count } = await query;
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    console.error('Supabase error in getLinenAuditLogs:', error);
+    return res.status(500).json({ error: error.message });
+  }
 
   res.json({
     data: data || [],

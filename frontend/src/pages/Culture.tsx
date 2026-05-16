@@ -24,7 +24,16 @@ const configs = {
     columns: ['sample', 'site', 'collected_on', 'result', 'status'],
     labels: ['Sample', 'Site', 'Collected', 'Result', 'Status']
   }
-} satisfies Record<SectionKey, { title: string; subtitle: string; columns: string[]; labels: string[] }>;
+} as const;
+
+interface CultureRow {
+  ot_name?: string;
+  sample: string;
+  site: string;
+  collected_on: string;
+  result: string;
+  status: string;
+}
 
 export const Culture = () => {
   const { can } = useAuth();
@@ -52,41 +61,47 @@ export const Culture = () => {
   const upsertRow = (_section: SectionKey, row: Row, filteredIndex?: number) => {
     setDraft((current) => {
       if (!current) return current;
-      const allRows = [...current.culture] as any[];
-      
-      const newRow = { ...row, ot_name: activeTab };
+      const culture: CultureRow[] = [...current.culture];
+      const newRow: CultureRow = { 
+        ot_name: activeTab,
+        sample: String(row.sample || ''),
+        site: String(row.site || ''),
+        collected_on: String(row.collected_on || ''),
+        result: String(row.result || ''),
+        status: String(row.status || '')
+      };
 
       if (typeof filteredIndex === 'number') {
         let count = -1;
-        const actualIndex = allRows.findIndex(r => {
+        const actualIndex = culture.findIndex(r => {
           const ot = r.ot_name || 'OT-1';
           if (ot === activeTab) count++;
           return count === filteredIndex;
         });
         if (actualIndex !== -1) {
-          allRows[actualIndex] = newRow;
+          culture[actualIndex] = newRow;
         }
       } else {
-        allRows.push(newRow);
+        culture.push(newRow);
       }
-      return { ...current, culture: allRows };
+      return { ...current, culture };
     });
   };
 
   const deleteRow = (_section: SectionKey, filteredIndex: number) => {
     setDraft((current) => {
       if (!current) return current;
-      const allRows = [...current.culture] as any[];
+      const culture: CultureRow[] = [...current.culture];
       let count = -1;
-      const actualIndex = allRows.findIndex(r => {
+      const actualIndex = culture.findIndex(r => {
         const ot = r.ot_name || 'OT-1';
         if (ot === activeTab) count++;
         return count === filteredIndex;
       });
       if (actualIndex !== -1) {
-        allRows.splice(actualIndex, 1);
+        culture.splice(actualIndex, 1);
       }
-      return { ...current, culture: allRows };
+      return { ...current, culture };
     });
   };
 
@@ -222,7 +237,7 @@ const OperationsSection = ({ section, rows, onDelete, onSave }: {
                 <tr key={index} className="border-t border-slate-100 align-top">
                   {config.columns.map((column) => (
                     <td key={column} className="px-4 py-3">
-                      {column === 'status' || column === 'indicator' ? <StatusBadge status={String(row[column] || '-')} /> : <span className="font-semibold text-slate-700">{String(row[column] || '-')}</span>}
+                      {column === 'status' ? <StatusBadge status={String(row[column] || '-')} /> : <span className="font-semibold text-slate-700">{String(row[column] || '-')}</span>}
                     </td>
                   ))}
                   <td className="px-4 py-3 text-right">
@@ -272,7 +287,7 @@ const OperationEditor = ({ section, initialRow, title, onCancel, onSubmit }: {
           {config.columns.map((column, index) => (
             <label key={column}>
               <span className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-500">{config.labels[index]}</span>
-              {column === 'status' || column === 'indicator' ? (
+              {column === 'status' ? (
                 <select value={String(form[column] || '')} onChange={(event) => setForm((current) => ({ ...current, [column]: event.target.value }))} className={inputClass}>
                   {optionsFor(column).map((option) => <option key={option}>{option}</option>)}
                 </select>

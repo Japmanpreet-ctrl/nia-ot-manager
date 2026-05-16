@@ -35,7 +35,13 @@ export const useUiStore = create<UiState>((set) => ({
     anesthesia_type: ''
   },
   setSelectedRecord: (selectedRecord) => set({ selectedRecord }),
-  showToast: (type, message) => set({ toast: { id: crypto.randomUUID(), type, message } }),
+  showToast: (type, message) => set({ 
+    toast: { 
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 11), 
+      type, 
+      message 
+    } 
+  }),
   clearToast: () => set({ toast: null }),
   setFilter: (key, value) => set((state) => ({ filters: { ...state.filters, [key]: value } })),
   clearFilters: () => set({ filters: { search: '', date: '', consultant: '', anesthesia_type: '' } })

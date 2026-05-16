@@ -1,6 +1,5 @@
-import { promises as fs } from 'fs';
-import path from 'path';
 import { Response } from 'express';
+import { supabase } from '../config/supabase';
 import { AuthRequest } from '../middleware/authMiddleware';
 
 type OperationsSection = 'inventory' | 'sterilization' | 'fumigation' | 'culture';
@@ -15,8 +14,6 @@ type OperationsOverview = {
   updated_at?: string;
 };
 
-const dataDir = path.resolve(__dirname, '../../data');
-const dataFile = path.join(dataDir, 'operations.json');
 const globalInventoryKey = '__global_inventory__';
 const globalArticlesKey = '__global_articles__';
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
@@ -63,15 +60,39 @@ const defaultOverview = (date: string): OperationsOverview => ({
 
 const readStore = async (): Promise<Record<string, OperationsOverview>> => {
   try {
-    return JSON.parse(await fs.readFile(dataFile, 'utf8'));
-  } catch {
+    const { data, error } = await supabase.from('ot_operations').select('*');
+    if (error) {
+      console.error('Error reading from Supabase ot_operations:', error.message);
+      return {};
+    }
+    const store: Record<string, OperationsOverview> = {};
+    (data || []).forEach((row) => {
+      store[row.date] = row.data;
+    });
+    return store;
+  } catch (err) {
+    console.error('Fatal error reading ot_operations:', err);
     return {};
   }
 };
 
-const writeStore = async (store: Record<string, OperationsOverview>) => {
-  await fs.mkdir(dataDir, { recursive: true });
-  await fs.writeFile(dataFile, JSON.stringify(store, null, 2));
+const writeEntry = async (date: string, data: OperationsOverview, updatedBy: string) => {
+  const { error } = await supabase
+    .from('ot_operations')
+    .upsert({
+      date,
+      data,
+      updated_at: new Date().toISOString(),
+      updated_by: updatedBy
+    });
+  if (error) {
+    console.error(`Error writing to Supabase ot_operations for date ${date}:`, error.message);
+    if (error.code === 'PGRST205' || error.message.includes("Could not find the table 'public.ot_operations'")) {
+      return false;
+    }
+    throw new Error(`Database write failed: ${error.message}`);
+  }
+  return true;
 };
 
 const normalizeDate = (value: unknown) => String(value || today()).slice(0, 10);
@@ -142,35 +163,41 @@ export const saveOperationsOverview = async (req: AuthRequest, res: Response) =>
   const date = normalizeDate(req.body.date || req.query.date);
   const store = await readStore();
   const current = store[date] || defaultOverview(date);
+  const updatedBy = req.user?.full_name || req.user?.email || 'User';
+  
   const next: OperationsOverview = {
     ...current,
     inventory: getGlobalInventory(store, date),
     articles: getGlobalArticles(store, date),
     date,
-    updated_by: req.user?.full_name || req.user?.email || 'User',
+    updated_by: updatedBy,
     updated_at: new Date().toISOString()
   };
 
+  // If inventory is provided, update global inventory record
   if (Array.isArray(req.body.inventory)) {
-    store[globalInventoryKey] = {
+    const globalInventoryData = {
       ...(store[globalInventoryKey] || defaultOverview(globalInventoryKey)),
       date: globalInventoryKey,
       inventory: normalizeInventory(req.body.inventory.map((row: Record<string, string | number>) => ({ ...row }))),
-      updated_by: next.updated_by,
+      updated_by: updatedBy,
       updated_at: next.updated_at
     };
-    next.inventory = store[globalInventoryKey].inventory;
+    await writeEntry(globalInventoryKey, globalInventoryData, updatedBy);
+    next.inventory = globalInventoryData.inventory;
   }
 
+  // If articles are provided, update global articles record
   if (Array.isArray(req.body.articles)) {
-    store[globalArticlesKey] = {
+    const globalArticlesData = {
       ...(store[globalArticlesKey] || defaultOverview(globalArticlesKey)),
       date: globalArticlesKey,
       articles: normalizeArticles(req.body.articles.map((row: Record<string, string | number>) => ({ ...row }))),
-      updated_by: next.updated_by,
+      updated_by: updatedBy,
       updated_at: next.updated_at
     };
-    next.articles = store[globalArticlesKey].articles;
+    await writeEntry(globalArticlesKey, globalArticlesData, updatedBy);
+    next.articles = globalArticlesData.articles;
   }
 
   for (const section of dailySections) {
@@ -179,7 +206,9 @@ export const saveOperationsOverview = async (req: AuthRequest, res: Response) =>
     }
   }
 
-  store[date] = next;
-  await writeStore(store);
-  res.json(next);
+  const persisted = await writeEntry(date, next, updatedBy);
+  res.json({
+    ...next,
+    persistence_status: persisted ? 'saved' : 'schema_unavailable'
+  });
 };

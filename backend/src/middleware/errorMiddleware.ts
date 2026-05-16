@@ -9,6 +9,7 @@ export const errorMiddleware = (
   const status = err.status || 500;
   res.status(status).json({
     error: status === 500 ? 'Internal server error' : err.message,
-    detail: process.env.NODE_ENV === 'production' ? undefined : err.message
+    detail: err.message,
+    stack: process.env.NODE_ENV === 'production' ? undefined : err.stack
   });
 };

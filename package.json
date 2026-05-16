@@ -1,0 +1,11 @@
+{
+  "name": "nia-ot-manager",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "build": "cd frontend && npm run build"
+  }
+}
