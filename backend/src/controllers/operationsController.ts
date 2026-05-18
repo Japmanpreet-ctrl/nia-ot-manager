@@ -16,6 +16,8 @@ type OperationsOverview = {
 
 const globalInventoryKey = '__global_inventory__';
 const globalArticlesKey = '__global_articles__';
+const operationsStorageBucket = 'ot-operations';
+const operationsStoragePath = 'store.json';
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
 const defaultInventory = () => [
@@ -58,10 +60,71 @@ const defaultOverview = (date: string): OperationsOverview => ({
   ]
 });
 
+const isMissingOperationsTable = (error: { code?: string; message?: string } | null | undefined) =>
+  Boolean(
+    error &&
+    (error.code === 'PGRST205' ||
+      error.message?.includes("Could not find the table 'public.ot_operations'"))
+  );
+
+const readStorageStore = async (): Promise<Record<string, OperationsOverview>> => {
+  try {
+    const { data, error } = await supabase.storage
+      .from(operationsStorageBucket)
+      .download(operationsStoragePath);
+
+    if (error) {
+      if (error.message?.toLowerCase().includes('not found')) return {};
+      console.error('Error reading Supabase storage operations store:', error.message);
+      return {};
+    }
+
+    return JSON.parse(await data.text()) as Record<string, OperationsOverview>;
+  } catch (err) {
+    console.error('Fatal error reading storage operations store:', err);
+    return {};
+  }
+};
+
+const writeStorageStore = async (store: Record<string, OperationsOverview>) => {
+  const payload = JSON.stringify(store, null, 2);
+  const file = new Blob([payload], { type: 'application/json' });
+
+  const upload = async () =>
+    supabase.storage
+      .from(operationsStorageBucket)
+      .upload(operationsStoragePath, file, {
+        contentType: 'application/json',
+        upsert: true,
+      });
+
+  let { error } = await upload();
+  if (error && error.message?.toLowerCase().includes('bucket not found')) {
+    const { error: bucketError } = await supabase.storage.createBucket(operationsStorageBucket, {
+      public: false,
+    });
+    if (bucketError && !bucketError.message?.toLowerCase().includes('already exists')) {
+      console.error('Error creating Supabase storage operations bucket:', bucketError.message);
+      return false;
+    }
+    ({ error } = await upload());
+  }
+
+  if (error) {
+    console.error('Error writing Supabase storage operations store:', error.message);
+    return false;
+  }
+
+  return true;
+};
+
 const readStore = async (): Promise<Record<string, OperationsOverview>> => {
   try {
     const { data, error } = await supabase.from('ot_operations').select('*');
     if (error) {
+      if (isMissingOperationsTable(error)) {
+        return readStorageStore();
+      }
       console.error('Error reading from Supabase ot_operations:', error.message);
       return {};
     }
@@ -86,10 +149,12 @@ const writeEntry = async (date: string, data: OperationsOverview, updatedBy: str
       updated_by: updatedBy
     });
   if (error) {
-    console.error(`Error writing to Supabase ot_operations for date ${date}:`, error.message);
-    if (error.code === 'PGRST205' || error.message.includes("Could not find the table 'public.ot_operations'")) {
-      return false;
+    if (isMissingOperationsTable(error)) {
+      const store = await readStorageStore();
+      store[date] = data;
+      return writeStorageStore(store);
     }
+    console.error(`Error writing to Supabase ot_operations for date ${date}:`, error.message);
     throw new Error(`Database write failed: ${error.message}`);
   }
   return true;
