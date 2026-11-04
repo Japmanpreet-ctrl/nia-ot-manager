@@ -102,7 +102,7 @@ export const Inventory = () => {
   };
 
   return (
-    <PageWrapper title="OT Consumables" subtitle="Master stock register for OT consumables">
+    <PageWrapper title="Surgery, OT & Shalya Consumables" subtitle="Master stock register for Surgery OPD, Operation Theatre, and Shalya Tantra consumables">
       <div className="grid gap-5 md:grid-cols-4">
         <InventoryStat title="Catalog Items" value={activeRows.length} icon={Boxes} tone="teal" />
         <InventoryStat title="Total Stock Units" value={totalStock} icon={CheckCircle2} tone="blue" />
