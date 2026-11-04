@@ -13,7 +13,7 @@ const titleMap: Record<string, string> = {
   '/records': 'Records',
   '/add-record': 'Add Record',
   '/analytics': 'Analytics',
-  '/inventory': 'Surgery, OT & Shalya Consumables',
+  '/inventory': 'Hospital Consumables',
   '/linen': 'OT Linen',
   '/operations': 'OT Operations',
   '/culture': 'OT Culture',
