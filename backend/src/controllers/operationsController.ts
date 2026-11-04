@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { supabase } from '../config/supabase';
 import { AuthRequest } from '../middleware/authMiddleware';
+import { consumableCatalog, type ConsumableSection } from '../data/consumableCatalog';
 
 type OperationsSection = 'inventory' | 'sterilization' | 'fumigation' | 'culture';
 type OperationsOverview = {
@@ -19,6 +20,8 @@ const globalArticlesKey = '__global_articles__';
 const operationsStorageBucket = 'ot-operations';
 const operationsStoragePath = 'store.json';
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+
+const validConsumableSections: ConsumableSection[] = ['Surgery OPD', 'Operation Theatre', 'Shalya Tantra'];
 
 const defaultInventory = () => [
     { category: 'Anesthesia', item: 'Propofol 10 mg/ml', stock: 42, unit: 'vials', reorder_level: 20, status: 'Adequate' },
@@ -164,6 +167,10 @@ const normalizeDate = (value: unknown) => String(value || today()).slice(0, 10);
 const dailySections: OperationsSection[] = ['sterilization', 'fumigation', 'culture'];
 const sortInventory = (rows: Array<Record<string, string | number>>) =>
   [...rows].sort((a, b) =>
+    String(a.section || 'Operation Theatre').trim().localeCompare(String(b.section || 'Operation Theatre').trim(), undefined, {
+      sensitivity: 'base',
+      numeric: true
+    }) ||
     String(a.category || '').trim().localeCompare(String(b.category || '').trim(), undefined, {
       sensitivity: 'base',
       numeric: true
@@ -180,18 +187,40 @@ const normalizeInventory = (rows: Array<Record<string, string | number>>) =>
     const reorderLevel = Number(row.reorder_level) || 0;
     return {
       ...row,
+      section: validConsumableSections.includes(row.section as ConsumableSection)
+        ? row.section
+        : 'Operation Theatre',
       category: String(row.category || '').trim(),
       item: String(row.item || '').trim(),
       unit: String(row.unit || '').trim(),
       stock,
       reorder_level: reorderLevel,
       shortage: Math.max(reorderLevel - stock, 0),
-      status: stock <= 0 ? 'Critical' : stock <= reorderLevel ? 'Reorder' : 'Adequate'
+      status: stock === 0 && reorderLevel === 0
+        ? 'Not Stocked'
+        : stock <= 0
+          ? 'Critical'
+          : stock <= reorderLevel
+            ? 'Reorder'
+            : 'Adequate'
     };
   });
 
+const inventoryKey = (row: Record<string, string | number>) =>
+  [row.section || 'Operation Theatre', row.category, row.item]
+    .map((value) => String(value || '').trim().toLocaleLowerCase())
+    .join('|');
+
+/** Adds new approved catalog rows once while leaving all current stock untouched. */
+const mergeCatalogIntoInventory = (rows: Array<Record<string, string | number>>) => {
+  const existing = normalizeInventory(rows);
+  const keys = new Set(existing.map(inventoryKey));
+  const missing = consumableCatalog.filter((row) => !keys.has(inventoryKey(row)));
+  return normalizeInventory([...existing, ...missing]);
+};
+
 const getGlobalInventory = (store: Record<string, OperationsOverview>, date: string) =>
-  normalizeInventory(store[globalInventoryKey]?.inventory || store[date]?.inventory || defaultInventory());
+  mergeCatalogIntoInventory(store[globalInventoryKey]?.inventory || store[date]?.inventory || defaultInventory());
 
 const sortArticles = (rows: Array<Record<string, string | number>>) =>
   [...rows].sort((a, b) =>
@@ -244,7 +273,7 @@ export const saveOperationsOverview = async (req: AuthRequest, res: Response) =>
     const globalInventoryData = {
       ...(store[globalInventoryKey] || defaultOverview(globalInventoryKey)),
       date: globalInventoryKey,
-      inventory: normalizeInventory(req.body.inventory.map((row: Record<string, string | number>) => ({ ...row }))),
+      inventory: mergeCatalogIntoInventory(req.body.inventory.map((row: Record<string, string | number>) => ({ ...row }))),
       updated_by: updatedBy,
       updated_at: next.updated_at
     };
