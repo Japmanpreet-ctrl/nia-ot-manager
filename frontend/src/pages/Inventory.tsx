@@ -40,7 +40,7 @@ export const Inventory = () => {
   const [batchIndex, setBatchIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    if (data) setDraft(data);
+    if (data) setDraft({ ...data, inventory: consolidateDuplicateInventoryRows(data.inventory) });
   }, [data]);
 
   if (!can('view_inventory')) return <Navigate to="/dashboard" replace />;
@@ -71,7 +71,7 @@ export const Inventory = () => {
       const inventory = [...current.inventory];
       if (typeof index === 'number') inventory[index] = normalizeInventoryRow(row);
       else inventory.push(normalizeInventoryRow(row));
-      return { ...current, inventory };
+      return { ...current, inventory: consolidateDuplicateInventoryRows(inventory) };
     });
     setPanel(null);
   };
@@ -93,13 +93,14 @@ export const Inventory = () => {
 
   const save = async () => {
     if (!draft) return;
-    const duplicate = findDuplicate(draft.inventory);
+    const inventory = consolidateDuplicateInventoryRows(draft.inventory);
+    const duplicate = findDuplicate(inventory);
     if (duplicate) {
       showToast('error', `Duplicate inventory item: ${duplicate}`);
       return;
     }
     try {
-      const saved = await saveInventory.mutateAsync({ ...draft, date: today });
+      const saved = await saveInventory.mutateAsync({ ...draft, inventory, date: today });
       setDraft(saved);
       showToast('success', 'Hospital Consumables saved');
     } catch (error) {
@@ -284,13 +285,21 @@ const InventoryPanel = ({ title, categories, initialRow, onCancel, onSubmit }: {
 };
 
 const normalizeInventoryRow = (row: InventoryRow): InventoryRow => {
-  const batches = (row.batches || []).map((batch) => ({
-    ...batch,
-    quantity: Math.max(Number(batch.quantity) || 0, 0),
-    expiry_date: batch.expiry_date || null,
-    received_date: batch.received_date || null,
-    notes: batch.notes || null
-  }));
+  const batchNameCounts = new Map<string, number>();
+  const batches = (row.batches || []).map((batch, index) => {
+    const baseBatchNumber = String(batch.batch_number || `Batch ${index + 1}`).trim();
+    const key = baseBatchNumber.toLowerCase();
+    const occurrence = (batchNameCounts.get(key) || 0) + 1;
+    batchNameCounts.set(key, occurrence);
+    return {
+      ...batch,
+      batch_number: occurrence === 1 ? baseBatchNumber : `${baseBatchNumber} (${occurrence})`,
+      quantity: Math.max(Number(batch.quantity) || 0, 0),
+      expiry_date: batch.expiry_date || null,
+      received_date: batch.received_date || null,
+      notes: batch.notes || null
+    };
+  });
   const details = calculateBatchDetails(batches);
   const stock = details.usableStock;
   const reorderLevel = Number(row.reorder_level) || 0;
@@ -304,6 +313,29 @@ const normalizeInventoryRow = (row: InventoryRow): InventoryRow => {
     next_expiry_date: details.nextExpiry,
     status: stock === 0 && reorderLevel === 0 ? 'Not Stocked' : stock <= 0 ? 'Critical' : stock <= reorderLevel ? 'Reorder' : 'Adequate'
   };
+};
+
+const consolidateDuplicateInventoryRows = (rows: InventoryRow[]) => {
+  const combined = new Map<string, InventoryRow>();
+  rows.map(normalizeInventoryRow).forEach((row) => {
+    const key = `${row.category}`.trim().toLowerCase() + '|' + `${row.item}`.trim().toLowerCase();
+    const existing = combined.get(key);
+    if (!row.category || !row.item) {
+      combined.set(`${key}|${combined.size}`, row);
+      return;
+    }
+    if (!existing) {
+      combined.set(key, row);
+      return;
+    }
+    combined.set(key, normalizeInventoryRow({
+      ...existing,
+      unit: String(existing.unit || row.unit || '').trim(),
+      reorder_level: Math.max(Number(existing.reorder_level) || 0, Number(row.reorder_level) || 0),
+      batches: [...(existing.batches || []), ...(row.batches || [])]
+    }));
+  });
+  return [...combined.values()].map(normalizeInventoryRow);
 };
 
 const calculateBatchDetails = (batches: ConsumableBatch[]) => {

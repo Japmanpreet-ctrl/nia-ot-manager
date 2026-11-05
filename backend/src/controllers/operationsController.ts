@@ -43,10 +43,18 @@ const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kol
 
 const validConsumableSections: ConsumableSection[] = ['Surgery OPD', 'Operation Theatre', 'Shalya Tantra'];
 const anaesthesiaCategory = 'Anaesthesia & airway management';
-const normalizeConsumableCategory = (value: unknown) =>
-  String(value || '').trim().toLocaleLowerCase() === 'anesthesia'
-    ? anaesthesiaCategory
-    : String(value || '').trim();
+const consumableCategoryRenames: Record<string, string> = {
+  anesthesia: anaesthesiaCategory,
+  'surgical consumables & sutures': 'Surgery',
+  'surgical draping & operative-field preparation': 'Surgery',
+  'dressing & wound management': 'Dressing, examination & minor procedures',
+  'general examination & patient care': 'Dressing, examination & minor procedures',
+  'minor procedures & opd interventions': 'Dressing, examination & minor procedures'
+};
+const normalizeConsumableCategory = (value: unknown) => {
+  const category = String(value || '').trim();
+  return consumableCategoryRenames[category.toLocaleLowerCase()] || category;
+};
 
 const defaultInventory = () => [
     { category: anaesthesiaCategory, item: 'Propofol 10 mg/ml', stock: 42, unit: 'vials', reorder_level: 20, status: 'Adequate' },
@@ -225,14 +233,19 @@ const normalizeBatches = (row: InventoryRow): InventoryBatch[] => {
       : [];
 
   const usedIds = new Set<string>();
+  const batchNumberCounts = new Map<string, number>();
   return source.map((value, index) => {
     const raw = value && typeof value === 'object' ? value as Partial<InventoryBatch> : {};
     let id = String(raw.id || batchId(`${row.section || 'operation-theatre'}-${row.category || ''}-${row.item || ''}-${index + 1}`)).trim();
     if (usedIds.has(id)) id = `${id}-${index + 1}`;
     usedIds.add(id);
+    const baseBatchNumber = String(raw.batch_number || (raw.is_opening_stock ? 'Opening stock' : `Batch ${index + 1}`)).trim();
+    const batchNumberKey = baseBatchNumber.toLocaleLowerCase();
+    const occurrence = (batchNumberCounts.get(batchNumberKey) || 0) + 1;
+    batchNumberCounts.set(batchNumberKey, occurrence);
     return {
       id,
-      batch_number: String(raw.batch_number || (raw.is_opening_stock ? 'Opening stock' : `Batch ${index + 1}`)).trim(),
+      batch_number: occurrence === 1 ? baseBatchNumber : `${baseBatchNumber} (${occurrence})`,
       quantity: Math.max(Number(raw.quantity) || 0, 0),
       received_date: dateKey(raw.received_date),
       expiry_date: dateKey(raw.expiry_date),
@@ -269,8 +282,7 @@ const getExpiryDetails = (batches: InventoryBatch[]) => {
   };
 };
 
-const normalizeInventory = (rows: InventoryRow[]) =>
-  sortInventory(rows).map((row) => {
+const normalizeInventoryRow = (row: InventoryRow): InventoryRow => {
     const normalizedRow = { ...row, category: normalizeConsumableCategory(row.category) };
     const batches = normalizeBatches(normalizedRow);
     const { usableStock, nextExpiry, expiryStatus } = getExpiryDetails(batches);
@@ -298,7 +310,36 @@ const normalizeInventory = (rows: InventoryRow[]) =>
             ? 'Reorder'
             : 'Adequate'
     };
+  };
+
+/** Combines exact duplicate consumables created by a category merger without losing stock history. */
+const consolidateDuplicateInventoryRows = (rows: InventoryRow[]) => {
+  const combined = new Map<string, InventoryRow>();
+  rows.forEach((row) => {
+    const key = [row.category, row.item]
+      .map((value) => String(value || '').trim().toLocaleLowerCase())
+      .join('|');
+    const existing = combined.get(key);
+    if (key === '|') {
+      combined.set(`${key}|${combined.size}`, row);
+      return;
+    }
+    if (!existing) {
+      combined.set(key, row);
+      return;
+    }
+    combined.set(key, {
+      ...existing,
+      unit: String(existing.unit || row.unit || '').trim(),
+      reorder_level: Math.max(Number(existing.reorder_level) || 0, Number(row.reorder_level) || 0),
+      batches: [...(existing.batches || []), ...(row.batches || [])]
+    });
   });
+  return [...combined.values()];
+};
+
+const normalizeInventory = (rows: InventoryRow[]) =>
+  sortInventory(consolidateDuplicateInventoryRows(rows.map(normalizeInventoryRow))).map(normalizeInventoryRow);
 
 const inventoryKey = (row: InventoryRow) =>
   [row.section || 'Operation Theatre', row.category, row.item]

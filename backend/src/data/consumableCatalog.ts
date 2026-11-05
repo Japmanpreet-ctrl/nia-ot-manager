@@ -22,52 +22,52 @@ const shalya = 'Shalya Tantra' as const;
  * a staff member enters the local opening stock and reorder threshold.
  */
 export const consumableCatalog: ConsumableCatalogItem[] = [
-  ...group(opd, 'General examination & patient care', 'Pair', [
+  ...group(opd, 'Dressing, examination & minor procedures', 'Pair', [
     'Examination gloves — sterile', 'Examination gloves — non-sterile', 'Disposable shoe covers'
   ]),
-  ...group(opd, 'General examination & patient care', 'Piece', [
+  ...group(opd, 'Dressing, examination & minor procedures', 'Piece', [
     'Disposable face masks (3-ply)', 'Disposable caps', 'Disposable aprons', 'Disposable bed sheets',
     'Disposable underpads', 'Disposable kidney trays'
   ]),
-  ...group(opd, 'General examination & patient care', 'Pack', [
+  ...group(opd, 'Dressing, examination & minor procedures', 'Pack', [
     'Cotton rolls', 'Sterile gauze pieces (10 × 10 cm)', 'Sterile gauze pads', 'Non-sterile gauze',
     'Disposable tissue paper', 'Paper towels'
   ]),
-  ...group(opd, 'General examination & patient care', 'Kg', ['Absorbent cotton wool']),
-  ...group(opd, 'General examination & patient care', 'Roll', [
+  ...group(opd, 'Dressing, examination & minor procedures', 'Kg', ['Absorbent cotton wool']),
+  ...group(opd, 'Dressing, examination & minor procedures', 'Roll', [
     'Roller bandages (5, 7.5, 10, 15 cm)', 'Crepe bandages (6, 8, 10, 15 cm)',
     'Adhesive plaster rolls', 'Micropore surgical tape'
   ]),
 
-  ...group(opd, 'Dressing & wound management', 'Pack', [
+  ...group(opd, 'Dressing, examination & minor procedures', 'Pack', [
     'Sterile dressing pads', 'Absorbent gauze swabs', 'Adhesive wound dressings'
   ]),
-  ...group(opd, 'Dressing & wound management', 'Piece', [
+  ...group(opd, 'Dressing, examination & minor procedures', 'Piece', [
     'Paraffin gauze dressing', 'Wound irrigation syringes', 'Disposable plastic forceps'
   ]),
-  ...group(opd, 'Dressing & wound management', 'Bottle', [
+  ...group(opd, 'Dressing, examination & minor procedures', 'Bottle', [
     'Povidone iodine solution (5% / 10%)', 'Chlorhexidine solution', 'Normal saline (0.9%)',
     'Hydrogen peroxide solution', 'Sterile water', 'Antiseptic hand rub', 'Surgical spirit'
   ]),
-  ...group(opd, 'Dressing & wound management', 'Set', ['Disposable dressing sets']),
-  ...group(opd, 'Dressing & wound management', 'Roll', [
+  ...group(opd, 'Dressing, examination & minor procedures', 'Set', ['Disposable dressing sets']),
+  ...group(opd, 'Dressing, examination & minor procedures', 'Roll', [
     'Elastic adhesive bandage', 'Disposable paper tape', 'Zinc oxide adhesive tape'
   ]),
 
-  ...group(opd, 'Minor procedures & OPD interventions', 'Piece', [
+  ...group(opd, 'Dressing, examination & minor procedures', 'Piece', [
     'Sterile surgical blade — No. 10', 'Sterile surgical blade — No. 11', 'Sterile surgical blade — No. 15',
     'Disposable syringe — 2 ml', 'Disposable syringe — 5 ml', 'Disposable syringe — 10 ml',
     'Disposable syringe — 20 ml', 'Disposable needle — 18G, 21G, 23G, 24G, 26G', 'Insulin syringe',
     'Sterile surgical drape', 'Disposable sterile gloves', 'Sterile specimen container',
     'Disposable suction tubing'
   ]),
-  ...group(opd, 'Minor procedures & OPD interventions', 'Vial', [
+  ...group(opd, 'Dressing, examination & minor procedures', 'Vial', [
     'Lignocaine 1%', 'Lignocaine 2%', 'Lignocaine with adrenaline'
   ]),
-  ...group(opd, 'Minor procedures & OPD interventions', 'Packet', [
+  ...group(opd, 'Dressing, examination & minor procedures', 'Packet', [
     'Suture material — absorbable', 'Suture material — non-absorbable'
   ]),
-  ...group(opd, 'Minor procedures & OPD interventions', 'Pack', [
+  ...group(opd, 'Dressing, examination & minor procedures', 'Pack', [
     'Haemostatic gauze', 'Local haemostatic agents'
   ]),
 
@@ -91,7 +91,7 @@ export const consumableCatalog: ConsumableCatalogItem[] = [
   ]),
   ...group(ot, 'PPE & OT preparation', 'Bottle', ['Surgical hand scrub solution', 'Alcohol-based hand rub']),
 
-  ...group(ot, 'Surgical draping & operative-field preparation', 'Piece', [
+  ...group(ot, 'Surgery', 'Piece', [
     'Sterile surgical drapes', 'Disposable abdominal drapes', 'Disposable fenestrated drapes',
     'Sterile OT sheets', 'Sterile instrument covers', 'Mayo stand covers', 'C-arm covers',
     'Microscope covers', 'Laparoscopic camera covers', 'Sterile adhesive incise drapes',
@@ -108,17 +108,17 @@ export const consumableCatalog: ConsumableCatalogItem[] = [
   ...group(ot, 'Antiseptics, disinfectants & cleaning', 'Piece', ['Sterile instrument-cleaning brushes']),
   ...group(ot, 'Antiseptics, disinfectants & cleaning', 'Pack', ['Lint-free cleaning cloths']),
 
-  ...group(ot, 'Surgical consumables & sutures', 'Packet', [
+  ...group(ot, 'Surgery', 'Packet', [
     'Vicryl / polyglactin 910 (0–4-0)', 'Vicryl rapide (2-0–4-0)', 'PDS / polydioxanone (0–3-0)',
     'Monocryl / poliglecaprone (3-0–4-0)', 'Silk (0–4-0)', 'Nylon (2-0–5-0)',
     'Polypropylene / Prolene (0–4-0)', 'Chromic catgut (0–2-0)', 'Plain catgut (2-0–3-0)',
     'Stainless steel suture wire', 'Ligature materials'
   ]),
-  ...group(ot, 'Surgical consumables & sutures', 'Piece', [
+  ...group(ot, 'Surgery', 'Piece', [
     'Sterile surgical blade — Nos. 10, 11, 12, 15, 20, 21, 22', 'Skin stapler', 'Staple remover',
     'Surgical adhesive', 'Bone wax', 'Surgical marking pen', 'Skin preparation applicator'
   ]),
-  ...group(ot, 'Surgical consumables & sutures', 'Pack', [
+  ...group(ot, 'Surgery', 'Pack', [
     'Haemostatic agents', 'Sterile gauze swabs', 'Abdominal mops', 'Laparotomy pads', 'Cottonoids'
   ]),
 
