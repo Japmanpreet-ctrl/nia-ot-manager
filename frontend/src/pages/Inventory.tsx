@@ -14,7 +14,7 @@ type InventoryRow = OperationsOverview['inventory'][number];
 const blankItem: InventoryRow = {
   // Kept for backward-compatible persistence; Hospital Consumables is one unified UI register.
   section: 'Operation Theatre',
-  category: 'Anesthesia',
+  category: 'Anaesthesia & airway management',
   item: '',
   stock: 0,
   unit: 'vials',

@@ -42,10 +42,15 @@ const operationsStoragePath = 'store.json';
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
 const validConsumableSections: ConsumableSection[] = ['Surgery OPD', 'Operation Theatre', 'Shalya Tantra'];
+const anaesthesiaCategory = 'Anaesthesia & airway management';
+const normalizeConsumableCategory = (value: unknown) =>
+  String(value || '').trim().toLocaleLowerCase() === 'anesthesia'
+    ? anaesthesiaCategory
+    : String(value || '').trim();
 
 const defaultInventory = () => [
-    { category: 'Anesthesia', item: 'Propofol 10 mg/ml', stock: 42, unit: 'vials', reorder_level: 20, status: 'Adequate' },
-    { category: 'Anesthesia', item: 'Bupivacaine Heavy 0.5%', stock: 18, unit: 'ampoules', reorder_level: 24, status: 'Reorder' },
+    { category: anaesthesiaCategory, item: 'Propofol 10 mg/ml', stock: 42, unit: 'vials', reorder_level: 20, status: 'Adequate' },
+    { category: anaesthesiaCategory, item: 'Bupivacaine Heavy 0.5%', stock: 18, unit: 'ampoules', reorder_level: 24, status: 'Reorder' },
     { category: 'Antibiotics', item: 'Ceftriaxone 1 g', stock: 86, unit: 'vials', reorder_level: 40, status: 'Adequate' },
     { category: 'Antibiotics', item: 'Piperacillin-Tazobactam 4.5 g', stock: 14, unit: 'vials', reorder_level: 18, status: 'Reorder' },
     { category: 'Analgesics', item: 'Paracetamol IV 1 g', stock: 64, unit: 'bottles', reorder_level: 30, status: 'Adequate' },
@@ -266,18 +271,19 @@ const getExpiryDetails = (batches: InventoryBatch[]) => {
 
 const normalizeInventory = (rows: InventoryRow[]) =>
   sortInventory(rows).map((row) => {
-    const batches = normalizeBatches(row);
+    const normalizedRow = { ...row, category: normalizeConsumableCategory(row.category) };
+    const batches = normalizeBatches(normalizedRow);
     const { usableStock, nextExpiry, expiryStatus } = getExpiryDetails(batches);
     const stock = usableStock;
-    const reorderLevel = Number(row.reorder_level) || 0;
+    const reorderLevel = Number(normalizedRow.reorder_level) || 0;
     return {
-      ...row,
-      section: validConsumableSections.includes(row.section as ConsumableSection)
-        ? row.section
+      ...normalizedRow,
+      section: validConsumableSections.includes(normalizedRow.section as ConsumableSection)
+        ? normalizedRow.section
         : 'Operation Theatre',
-      category: String(row.category || '').trim(),
-      item: String(row.item || '').trim(),
-      unit: String(row.unit || '').trim(),
+      category: normalizedRow.category,
+      item: String(normalizedRow.item || '').trim(),
+      unit: String(normalizedRow.unit || '').trim(),
       stock,
       batches,
       expiry_status: expiryStatus,
