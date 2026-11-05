@@ -11,6 +11,8 @@ type OperationsOverview = {
   fumigation: Array<Record<string, string | number>>;
   culture: Array<Record<string, string | number>>;
   articles: Array<Record<string, string | number>>;
+  /** Catalog rows deliberately removed by staff, so they are not reseeded on save. */
+  deleted_inventory_keys?: string[];
   updated_by?: string;
   updated_at?: string;
 };
@@ -211,16 +213,32 @@ const inventoryKey = (row: Record<string, string | number>) =>
     .map((value) => String(value || '').trim().toLocaleLowerCase())
     .join('|');
 
-/** Adds new approved catalog rows once while leaving all current stock untouched. */
-const mergeCatalogIntoInventory = (rows: Array<Record<string, string | number>>) => {
+const normalizeDeletedInventoryKeys = (value: unknown): string[] =>
+  Array.isArray(value)
+    ? Array.from(new Set(value.filter((key): key is string => typeof key === 'string' && key.trim().length > 0)))
+    : [];
+
+const catalogInventoryKeys = new Set(consumableCatalog.map(inventoryKey));
+
+/** Adds approved catalog rows once, except rows explicitly removed by staff. */
+const mergeCatalogIntoInventory = (
+  rows: Array<Record<string, string | number>>,
+  deletedKeys: string[] = []
+) => {
   const existing = normalizeInventory(rows);
   const keys = new Set(existing.map(inventoryKey));
-  const missing = consumableCatalog.filter((row) => !keys.has(inventoryKey(row)));
+  const deleted = new Set(normalizeDeletedInventoryKeys(deletedKeys));
+  const missing = consumableCatalog.filter((row) => !keys.has(inventoryKey(row)) && !deleted.has(inventoryKey(row)));
   return normalizeInventory([...existing, ...missing]);
 };
 
-const getGlobalInventory = (store: Record<string, OperationsOverview>, date: string) =>
-  mergeCatalogIntoInventory(store[globalInventoryKey]?.inventory || store[date]?.inventory || defaultInventory());
+const getGlobalInventory = (store: Record<string, OperationsOverview>, date: string) => {
+  const global = store[globalInventoryKey];
+  return mergeCatalogIntoInventory(
+    global?.inventory || store[date]?.inventory || defaultInventory(),
+    global?.deleted_inventory_keys
+  );
+};
 
 const sortArticles = (rows: Array<Record<string, string | number>>) =>
   [...rows].sort((a, b) =>
@@ -270,10 +288,20 @@ export const saveOperationsOverview = async (req: AuthRequest, res: Response) =>
 
   // If inventory is provided, update global inventory record
   if (Array.isArray(req.body.inventory)) {
+    const submittedInventory = normalizeInventory(
+      req.body.inventory.map((row: Record<string, string | number>) => ({ ...row }))
+    );
+    const submittedKeys = new Set(submittedInventory.map(inventoryKey));
+    const previouslyDeleted = normalizeDeletedInventoryKeys(store[globalInventoryKey]?.deleted_inventory_keys);
+    const deletedInventoryKeys = Array.from(new Set([
+      ...previouslyDeleted.filter((key) => !submittedKeys.has(key)),
+      ...Array.from(catalogInventoryKeys).filter((key) => !submittedKeys.has(key))
+    ])).sort();
     const globalInventoryData = {
       ...(store[globalInventoryKey] || defaultOverview(globalInventoryKey)),
       date: globalInventoryKey,
-      inventory: mergeCatalogIntoInventory(req.body.inventory.map((row: Record<string, string | number>) => ({ ...row }))),
+      inventory: mergeCatalogIntoInventory(submittedInventory, deletedInventoryKeys),
+      deleted_inventory_keys: deletedInventoryKeys,
       updated_by: updatedBy,
       updated_at: next.updated_at
     };
