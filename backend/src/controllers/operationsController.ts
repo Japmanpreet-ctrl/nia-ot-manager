@@ -4,9 +4,27 @@ import { AuthRequest } from '../middleware/authMiddleware';
 import { consumableCatalog, type ConsumableSection } from '../data/consumableCatalog';
 
 type OperationsSection = 'inventory' | 'sterilization' | 'fumigation' | 'culture';
+type InventoryBatch = {
+  id: string;
+  batch_number: string;
+  quantity: number;
+  received_date?: string | null;
+  expiry_date?: string | null;
+  notes?: string | null;
+  is_opening_stock?: boolean;
+};
+type InventoryRow = Record<string, unknown> & {
+  section?: string;
+  category?: string;
+  item?: string;
+  stock?: number | string;
+  unit?: string;
+  reorder_level?: number | string;
+  batches?: InventoryBatch[];
+};
 type OperationsOverview = {
   date: string;
-  inventory: Array<Record<string, string | number>>;
+  inventory: InventoryRow[];
   sterilization: Array<Record<string, string | number>>;
   fumigation: Array<Record<string, string | number>>;
   culture: Array<Record<string, string | number>>;
@@ -167,7 +185,7 @@ const writeEntry = async (date: string, data: OperationsOverview, updatedBy: str
 
 const normalizeDate = (value: unknown) => String(value || today()).slice(0, 10);
 const dailySections: OperationsSection[] = ['sterilization', 'fumigation', 'culture'];
-const sortInventory = (rows: Array<Record<string, string | number>>) =>
+const sortInventory = (rows: InventoryRow[]) =>
   [...rows].sort((a, b) =>
     String(a.section || 'Operation Theatre').trim().localeCompare(String(b.section || 'Operation Theatre').trim(), undefined, {
       sensitivity: 'base',
@@ -183,9 +201,74 @@ const sortInventory = (rows: Array<Record<string, string | number>>) =>
     })
   );
 
-const normalizeInventory = (rows: Array<Record<string, string | number>>) =>
+const batchId = (seed: string) => `batch-${seed.replace(/[^a-z0-9]+/gi, '-').replace(/(^-|-$)/g, '').slice(0, 80) || 'item'}`;
+const dateKey = (value?: string | null) => value?.slice(0, 10) || null;
+const todayKey = () => today();
+
+const normalizeBatches = (row: InventoryRow): InventoryBatch[] => {
+  const fallbackStock = Math.max(Number(row.stock) || 0, 0);
+  const source = Array.isArray(row.batches)
+    ? row.batches
+    : fallbackStock > 0
+      ? [{
+          id: batchId(`opening-${row.section || 'operation-theatre'}-${row.category || ''}-${row.item || ''}`),
+          batch_number: 'Opening stock',
+          quantity: fallbackStock,
+          notes: 'Migrated from stock recorded before batch tracking.',
+          is_opening_stock: true
+        }]
+      : [];
+
+  const usedIds = new Set<string>();
+  return source.map((value, index) => {
+    const raw = value && typeof value === 'object' ? value as Partial<InventoryBatch> : {};
+    let id = String(raw.id || batchId(`${row.section || 'operation-theatre'}-${row.category || ''}-${row.item || ''}-${index + 1}`)).trim();
+    if (usedIds.has(id)) id = `${id}-${index + 1}`;
+    usedIds.add(id);
+    return {
+      id,
+      batch_number: String(raw.batch_number || (raw.is_opening_stock ? 'Opening stock' : `Batch ${index + 1}`)).trim(),
+      quantity: Math.max(Number(raw.quantity) || 0, 0),
+      received_date: dateKey(raw.received_date),
+      expiry_date: dateKey(raw.expiry_date),
+      notes: raw.notes ? String(raw.notes).trim() : null,
+      is_opening_stock: Boolean(raw.is_opening_stock)
+    };
+  });
+};
+
+const getExpiryDetails = (batches: InventoryBatch[]) => {
+  const activeBatches = batches.filter((batch) => batch.quantity > 0);
+  const expired = activeBatches.filter((batch) => batch.expiry_date && batch.expiry_date < todayKey());
+  const usable = activeBatches.filter((batch) => !batch.expiry_date || batch.expiry_date >= todayKey());
+  const datedUsable = usable.filter((batch) => batch.expiry_date).sort((a, b) => String(a.expiry_date).localeCompare(String(b.expiry_date)));
+  const nextExpiry = datedUsable[0]?.expiry_date || null;
+  const expiringSoon = datedUsable.some((batch) => {
+    const expiry = new Date(`${batch.expiry_date}T00:00:00Z`).getTime();
+    const days = Math.floor((expiry - new Date(`${todayKey()}T00:00:00Z`).getTime()) / 86_400_000);
+    return days <= 90;
+  });
+  const hasNoExpiry = usable.some((batch) => !batch.expiry_date);
+  return {
+    usableStock: usable.reduce((sum, batch) => sum + batch.quantity, 0),
+    nextExpiry,
+    expiryStatus: expired.length > 0
+      ? 'Expired'
+      : expiringSoon
+        ? 'Expiring Soon'
+        : activeBatches.length === 0
+          ? 'No Batches'
+          : hasNoExpiry
+            ? 'No Expiry Recorded'
+            : 'In Date'
+  };
+};
+
+const normalizeInventory = (rows: InventoryRow[]) =>
   sortInventory(rows).map((row) => {
-    const stock = Number(row.stock) || 0;
+    const batches = normalizeBatches(row);
+    const { usableStock, nextExpiry, expiryStatus } = getExpiryDetails(batches);
+    const stock = usableStock;
     const reorderLevel = Number(row.reorder_level) || 0;
     return {
       ...row,
@@ -196,6 +279,9 @@ const normalizeInventory = (rows: Array<Record<string, string | number>>) =>
       item: String(row.item || '').trim(),
       unit: String(row.unit || '').trim(),
       stock,
+      batches,
+      expiry_status: expiryStatus,
+      next_expiry_date: nextExpiry,
       reorder_level: reorderLevel,
       shortage: Math.max(reorderLevel - stock, 0),
       status: stock === 0 && reorderLevel === 0
@@ -208,7 +294,7 @@ const normalizeInventory = (rows: Array<Record<string, string | number>>) =>
     };
   });
 
-const inventoryKey = (row: Record<string, string | number>) =>
+const inventoryKey = (row: InventoryRow) =>
   [row.section || 'Operation Theatre', row.category, row.item]
     .map((value) => String(value || '').trim().toLocaleLowerCase())
     .join('|');
@@ -222,7 +308,7 @@ const catalogInventoryKeys = new Set(consumableCatalog.map(inventoryKey));
 
 /** Adds approved catalog rows once, except rows explicitly removed by staff. */
 const mergeCatalogIntoInventory = (
-  rows: Array<Record<string, string | number>>,
+  rows: InventoryRow[],
   deletedKeys: string[] = []
 ) => {
   const existing = normalizeInventory(rows);
@@ -289,7 +375,7 @@ export const saveOperationsOverview = async (req: AuthRequest, res: Response) =>
   // If inventory is provided, update global inventory record
   if (Array.isArray(req.body.inventory)) {
     const submittedInventory = normalizeInventory(
-      req.body.inventory.map((row: Record<string, string | number>) => ({ ...row }))
+      req.body.inventory.map((row: InventoryRow) => ({ ...row }))
     );
     const submittedKeys = new Set(submittedInventory.map(inventoryKey));
     const previouslyDeleted = normalizeDeletedInventoryKeys(store[globalInventoryKey]?.deleted_inventory_keys);

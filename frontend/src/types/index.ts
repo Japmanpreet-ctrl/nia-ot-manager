@@ -146,6 +146,21 @@ export interface ConsumableInventoryRow {
   reorder_level: number | string;
   status: string;
   shortage?: number;
+  batches?: ConsumableBatch[];
+  expiry_status?: ConsumableExpiryStatus;
+  next_expiry_date?: string | null;
+}
+
+export type ConsumableExpiryStatus = 'No Batches' | 'No Expiry Recorded' | 'In Date' | 'Expiring Soon' | 'Expired';
+
+export interface ConsumableBatch {
+  id: string;
+  batch_number: string;
+  quantity: number;
+  received_date?: string | null;
+  expiry_date?: string | null;
+  notes?: string | null;
+  is_opening_stock?: boolean;
 }
 
 /* ─── OT Linen ─── */
